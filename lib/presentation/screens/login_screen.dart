@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
-
+import 'home_shell.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -36,8 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
       api.setToken(data['token']);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('¡Bienvenida, ${data['nombre']}!')),
+        Navigator.of( context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeShell()),
         );
       }
 
