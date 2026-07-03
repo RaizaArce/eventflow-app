@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
+import 'crear_evento_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
   final int eventoId;
@@ -262,7 +263,32 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        if (evento == null) return;
+
+                        final actualizado = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CrearEventoScreen(evento: evento),
+                          ),
+                        );
+
+                        if (actualizado == true) {
+                          cargarDetalleEvento();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Editar evento'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   construirBotonTemporal(
                     icono: Icons.group,
                     texto: 'Ver participantes',
