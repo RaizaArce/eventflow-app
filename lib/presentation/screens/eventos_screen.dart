@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
 import 'detalle_evento_screen.dart';
+import 'crear_evento_screen.dart';
 
 class EventosScreen extends StatefulWidget {
   const EventosScreen({super.key});
@@ -151,6 +152,21 @@ class _EventosScreenState extends State<EventosScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        onPressed: () async {
+          final creado = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CrearEventoScreen()),
+          );
+
+          if (creado == true) {
+            cargarEventos();
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
