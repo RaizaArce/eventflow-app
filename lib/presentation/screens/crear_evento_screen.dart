@@ -3,7 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
 
 class CrearEventoScreen extends StatefulWidget {
-  const CrearEventoScreen({super.key});
+  final Map<String, dynamic>? evento;
+
+  const CrearEventoScreen({super.key, this.evento});
 
   @override
   State<CrearEventoScreen> createState() => _CrearEventoScreenState();
@@ -24,6 +26,40 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
   DateTime? fechaFin;
 
   bool guardando = false;
+  String estadoSeleccionado = 'Borrador';
+
+  final estados = ['Borrador', 'Publicado', 'EnCurso', 'Finalizado'];
+
+  bool get esEdicion => widget.evento != null;
+
+  @override
+  void initState() {
+    super.initState();
+    precargarDatosSiEsEdicion();
+  }
+
+  void precargarDatosSiEsEdicion() {
+    if (!esEdicion) return;
+
+    final evento = widget.evento!;
+
+    nombreController.text = evento['nombre']?.toString() ?? '';
+    descripcionController.text = evento['descripcion']?.toString() ?? '';
+    direccionController.text = evento['direccion']?.toString() ?? '';
+    aforoController.text = evento['aforo']?.toString() ?? '';
+
+    latitudController.text = evento['latitud']?.toString() ?? '-6.77';
+    longitudController.text = evento['longitud']?.toString() ?? '-79.84';
+
+    fechaInicio = DateTime.tryParse(evento['fecha_inicio']?.toString() ?? '');
+    fechaFin = DateTime.tryParse(evento['fecha_fin']?.toString() ?? '');
+
+    final estadoActual = evento['estado']?.toString();
+
+    if (estadoActual != null && estados.contains(estadoActual)) {
+      estadoSeleccionado = estadoActual;
+    }
+  }
 
   @override
   void dispose() {
@@ -188,12 +224,25 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
         'aforo': aforo,
       };
 
-      await api.dio.post('/eventos', data: data);
+      if (esEdicion) {
+        data['estado'] = estadoSeleccionado;
+
+        final id = widget.evento!['id'];
+        await api.dio.put('/eventos/$id', data: data);
+      } else {
+        await api.dio.post('/eventos', data: data);
+      }
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Evento creado correctamente')),
+        SnackBar(
+          content: Text(
+            esEdicion
+                ? 'Evento actualizado correctamente'
+                : 'Evento creado correctamente',
+          ),
+        ),
       );
 
       Navigator.pop(context, true);
@@ -201,7 +250,13 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo crear el evento')),
+        SnackBar(
+          content: Text(
+            esEdicion
+                ? 'No se pudo actualizar el evento'
+                : 'No se pudo crear el evento',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -229,12 +284,45 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     );
   }
 
+  Widget construirSelectorEstado() {
+    if (!esEdicion) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Estado del evento',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 14),
+        DropdownButtonFormField<String>(
+          value: estadoSeleccionado,
+          decoration: decoracionCampo(label: 'Estado', icono: Icons.flag),
+          items: estados.map((estado) {
+            return DropdownMenuItem<String>(value: estado, child: Text(estado));
+          }).toList(),
+          onChanged: (valor) {
+            if (valor == null) return;
+
+            setState(() {
+              estadoSeleccionado = valor;
+            });
+          },
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final tituloPantalla = esEdicion ? 'Editar evento' : 'Crear evento';
+    final textoBoton = esEdicion ? 'Guardar cambios' : 'Crear evento';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Crear evento'),
+        title: Text(tituloPantalla),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -288,6 +376,8 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
               validator: validarCampoObligatorio,
             ),
             const SizedBox(height: 20),
+
+            construirSelectorEstado(),
 
             const Text(
               'Fecha y hora',
@@ -365,7 +455,7 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
                         ),
                       )
                     : const Icon(Icons.save),
-                label: Text(guardando ? 'Guardando...' : 'Crear evento'),
+                label: Text(guardando ? 'Guardando...' : textoBoton),
               ),
             ),
           ],
