@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
+import 'detalle_evento_screen.dart';
 
 class EventosScreen extends StatefulWidget {
   const EventosScreen({super.key});
@@ -117,6 +118,18 @@ class _EventosScreenState extends State<EventosScreen> {
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: ListTile(
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => DetalleEventoScreen(
+                                    eventoId: int.parse(e['id'].toString()),
+                                  ),
+                                ),
+                              );
+
+                              cargarEventos();
+                            },
                             leading: const CircleAvatar(
                               backgroundColor: Colors.green,
                               child: Icon(Icons.event, color: Colors.white),
