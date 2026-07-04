@@ -52,6 +52,58 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
     }
   }
 
+  Future<void> eliminarEvento() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('¿Eliminar evento?'),
+          content: const Text(
+            'Esta acción eliminará el evento de forma permanente. ¿Deseas continuar?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      api.setToken(token);
+
+      await api.dio.delete('/eventos/${widget.eventoId}');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Evento eliminado correctamente')),
+      );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo eliminar el evento')),
+      );
+    }
+  }
+
   String obtenerValor(List<String> claves, {String defecto = '-'}) {
     if (evento == null) return defecto;
 
@@ -263,6 +315,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -286,6 +339,19 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       ),
                       icon: const Icon(Icons.edit),
                       label: const Text('Editar evento'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: eliminarEvento,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                      icon: const Icon(Icons.delete),
+                      label: const Text('Eliminar evento'),
                     ),
                   ),
                   const SizedBox(height: 10),
