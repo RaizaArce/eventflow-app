@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
 import 'crear_evento_screen.dart';
+import 'participantes_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
   final int eventoId;
@@ -168,24 +169,26 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
   }
 
   Widget construirBotonTemporal({
-    required IconData icono,
-    required String texto,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$texto se conectará en el siguiente módulo'),
-            ),
-          );
-        },
-        icon: Icon(icono),
-        label: Text(texto),
-      ),
-    );
-  }
+  required IconData icono,
+  required String texto,
+  VoidCallback? onPressed,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    child: OutlinedButton.icon(
+      onPressed: onPressed ??
+          () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$texto se conectará en el siguiente módulo'),
+              ),
+            );
+          },
+      icon: Icon(icono),
+      label: Text(texto),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -358,7 +361,17 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                   construirBotonTemporal(
                     icono: Icons.group,
                     texto: 'Ver participantes',
-                  ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ParticipantesScreen(
+                            eventoId: widget.eventoId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   const SizedBox(height: 10),
                   construirBotonTemporal(
                     icono: Icons.schedule,
