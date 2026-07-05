@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'registrar_participante_screen.dart';
+import 'mostrar_qr_screen.dart';
 
 import '../../data/api_client.dart';
 
@@ -245,6 +246,14 @@ Widget build(BuildContext context) {
                                 ),
                                 trailing: PopupMenuButton<String>(
                                   onSelected: (value) async {
+                                    if (value == 'ver_qr'){
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => MostrarQrScreen(participante: participante),
+                                        ),
+                                      );
+                                    }
                                     if (value == 'editar') {
                                       final actualizado = await Navigator.push(
                                         context,
@@ -266,6 +275,16 @@ Widget build(BuildContext context) {
                                     }
                                   },
                                   itemBuilder: (context) => const [
+                                    PopupMenuItem(
+                                      value: 'ver_qr',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.qr_code, color: Colors.green),
+                                          SizedBox(width: 8),
+                                          Text('Ver Código QR'),
+                                        ],
+                                      ),
+                                    ),
                                     PopupMenuItem(
                                       value: 'editar',
                                       child: Row(
