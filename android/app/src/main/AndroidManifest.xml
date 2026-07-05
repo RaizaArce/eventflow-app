@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Permiso para que el módulo de asistencia use la cámara -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    
     <application
         android:label="eventflow_app"
         android:name="${applicationName}"
