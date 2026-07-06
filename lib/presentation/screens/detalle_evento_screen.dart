@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
 import 'crear_evento_screen.dart';
 import 'participantes_screen.dart';
+import 'escanear_asistencia_screen.dart';
+import 'reporte_asistencia_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
   final int eventoId;
@@ -373,6 +375,35 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       },
                     ),
                   const SizedBox(height: 10),
+                  construirBotonTemporal(
+                    icono: Icons.qr_code_scanner,
+                    texto: 'Escanear Asistencia',
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                          MaterialPageRoute(
+                            builder: (_) => EscanearAsistenciaScreen(
+                              eventoId: widget.eventoId,
+                            ),
+                          ),
+                        );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  construirBotonTemporal(
+                    icono: Icons.analytics_outlined,
+                    texto: 'Reporte de Asistencias',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ReporteAsistenciaScreen( // Tu pantalla de reportes
+                            eventoId: widget.eventoId,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   construirBotonTemporal(
                     icono: Icons.schedule,
                     texto: 'Ver agenda',
