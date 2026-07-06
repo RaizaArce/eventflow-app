@@ -42,6 +42,9 @@ dependencies:
   #Dependencias para el qr y el scanner.
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.0.0
+  # Dependencias de Geo
+  google_maps_flutter: ^2.6.0
+  geolocator: ^11.0.0
 
 dev_dependencies:
   flutter_test:

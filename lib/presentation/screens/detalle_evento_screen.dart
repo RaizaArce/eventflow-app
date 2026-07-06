@@ -5,6 +5,7 @@ import 'crear_evento_screen.dart';
 import 'participantes_screen.dart';
 import 'escanear_asistencia_screen.dart';
 import 'reporte_asistencia_screen.dart';
+import 'agenda_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
   final int eventoId;
@@ -407,6 +408,16 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                   construirBotonTemporal(
                     icono: Icons.schedule,
                     texto: 'Ver agenda',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AgendaScreen(
+                            eventoId: widget.eventoId,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
