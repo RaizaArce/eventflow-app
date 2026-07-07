@@ -2,6 +2,11 @@
 
     <!-- Permiso para que el módulo de asistencia use la cámara -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Permisos de ubicación (MAPAS + GPS) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     
     <application
         android:label="eventflow_app"
@@ -34,6 +39,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCYEYp7qbg_W3IoH3FHhltrl06vnGFYxjs"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

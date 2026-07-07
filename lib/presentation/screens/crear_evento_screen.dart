@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/api_client.dart';
+import 'seleccionar_ubicacion_screen.dart';
 
 class CrearEventoScreen extends StatefulWidget {
   final Map<String, dynamic>? evento;
@@ -19,8 +20,8 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
   final descripcionController = TextEditingController();
   final direccionController = TextEditingController();
   final aforoController = TextEditingController();
-  final latitudController = TextEditingController(text: '-6.77');
-  final longitudController = TextEditingController(text: '-79.84');
+  final latitudController = TextEditingController();
+  final longitudController = TextEditingController();
 
   DateTime? fechaInicio;
   DateTime? fechaFin;
@@ -400,39 +401,68 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
             const SizedBox(height: 20),
 
             const Text(
-              'Ubicación temporal',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              'Ubicación del evento',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.map),
+                label: const Text("Seleccionar ubicación"),
+                onPressed: () async {
+
+                  final latActual =
+                      double.tryParse(latitudController.text) ?? -6.7714;
+
+                  final lngActual =
+                      double.tryParse(longitudController.text) ?? -79.8409;
+
+
+                  final resultado = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SeleccionarUbicacionScreen(
+                        latitudInicial: latActual,
+                        longitudInicial: lngActual,
+                      ),
+                    ),
+                  );
+
+
+                  if (resultado != null) {
+
+                    setState(() {
+
+                      latitudController.text =
+                          resultado['lat'].toString();
+
+                      longitudController.text =
+                          resultado['lng'].toString();
+
+                    });
+
+                  }
+
+                },
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              "Latitud: ${latitudController.text}",
+            ),
+
             const SizedBox(height: 6),
 
-            const Text(
-              'Por ahora se usan coordenadas de prueba. Luego Javier conectará el selector de mapa.',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 14),
-
-            TextFormField(
-              controller: latitudController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              decoration: decoracionCampo(label: 'Latitud', icono: Icons.map),
-              validator: validarCampoObligatorio,
-            ),
-            const SizedBox(height: 14),
-
-            TextFormField(
-              controller: longitudController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              decoration: decoracionCampo(
-                label: 'Longitud',
-                icono: Icons.map_outlined,
-              ),
-              validator: validarCampoObligatorio,
+            Text(
+              "Longitud: ${longitudController.text}",
             ),
             const SizedBox(height: 24),
 
