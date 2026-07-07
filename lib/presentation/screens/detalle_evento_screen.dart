@@ -6,6 +6,7 @@ import 'participantes_screen.dart';
 import 'escanear_asistencia_screen.dart';
 import 'reporte_asistencia_screen.dart';
 import 'agenda_screen.dart';
+import 'mapa_evento_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
   final int eventoId;
@@ -336,7 +337,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                         );
 
                         if (actualizado == true) {
-                          cargarDetalleEvento();
+                          await cargarDetalleEvento();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -414,6 +415,28 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                         MaterialPageRoute(
                           builder: (_) => AgendaScreen(
                             eventoId: widget.eventoId,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  construirBotonTemporal(
+                    icono: Icons.map,
+                    texto: 'Ver mapa del evento',
+                    onPressed: () {
+                      if (evento == null) return;
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MapaEventoScreen(
+                            latitud: double.parse(
+                              evento!['latitud'].toString(),
+                            ),
+                            longitud: double.parse(
+                              evento!['longitud'].toString(),
+                            ),
+                            nombreEvento: evento!['nombre'].toString(),
                           ),
                         ),
                       );
