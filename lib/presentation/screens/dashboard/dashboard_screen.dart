@@ -196,16 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Row(
             children: [
               if (e.imagenUrl != null && e.imagenUrl!.isNotEmpty)
-                SizedBox(
-                  width: 140,
-                  child: Image.memory(
-                    base64Decode(e.imagenUrl!),
-                    fit: BoxFit.cover,
-                    width: 140,
-                    height: 160,
-                    errorBuilder: (_, __, ___) => _cardPlaceholder(),
-                  ),
-                )
+                _imageCard(e.imagenUrl!)
               else
                 SizedBox(
                   width: 140,
@@ -258,6 +249,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _imageCard(String imagenUrl) {
+    try {
+      return SizedBox(
+        width: 140,
+        child: Image.memory(
+          base64Decode(imagenUrl),
+          fit: BoxFit.cover,
+          width: 140,
+          height: 160,
+          errorBuilder: (_, __, ___) => _cardPlaceholder(),
+        ),
+      );
+    } catch (_) {
+      return SizedBox(width: 140, child: _cardPlaceholder());
+    }
   }
 
   Widget _cardPlaceholder() {

@@ -167,7 +167,7 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
                       color: Colors.red[100],
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
-                        child: Text(mensajeError!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                        child: Text(mensajeError!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold), textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                     const SizedBox(height: 10),

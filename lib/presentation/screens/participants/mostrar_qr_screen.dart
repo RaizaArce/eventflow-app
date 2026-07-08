@@ -35,6 +35,8 @@ class MostrarQrScreen extends StatelessWidget {
                 participante.nombre,
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
               Text(

@@ -83,6 +83,8 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
           title: const Text('Eliminar participante'),
           content: Text(
             '¿Está seguro de eliminar a\n${participante.nombre}?',
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
           ),
           actions: [
             TextButton(
@@ -168,7 +170,7 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
           ? const ShimmerCardList()
           : mensajeError.isNotEmpty
               ? Center(
-                  child: Text(mensajeError, style: const TextStyle(color: Colors.red)),
+                  child: Text(mensajeError, style: const TextStyle(color: Colors.red), maxLines: 3, overflow: TextOverflow.ellipsis),
                 )
               : participantesFiltrados.isEmpty
                   ? const EmptyStateWidget(

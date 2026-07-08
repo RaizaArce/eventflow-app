@@ -192,18 +192,20 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
   Widget _bannerImagen(String imagenUrl) {
     try {
       final bytes = base64Decode(imagenUrl);
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: Image.memory(
-            bytes,
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+      return Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Image.memory(
+              bytes,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            ),
           ),
-        ),
+          const SizedBox(height: 16),
+        ],
       );
     } catch (_) {
       return const SizedBox.shrink();
@@ -368,6 +370,8 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       child: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
+                          if (evento.imagenUrl != null && evento.imagenUrl!.isNotEmpty)
+                            _bannerImagen(evento.imagenUrl!),
                           Hero(
                             tag: 'evento_${widget.eventoId}',
                             child: Card(
@@ -440,8 +444,6 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                               ),
                             ),
                           ),
-                          if (evento.imagenUrl != null && evento.imagenUrl!.isNotEmpty)
-                            _bannerImagen(evento.imagenUrl!),
                           const SizedBox(height: 16),
                           Card(
                             elevation: 1,

@@ -158,6 +158,8 @@ class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScree
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -188,14 +190,17 @@ class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScree
                           ),
                         ),
                         const SizedBox(width: 10),
-                        Text(
-                          'Datos del participante',
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
+                    Flexible(
+                      child: Text(
+                        'Datos del participante',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                       ],
                     ),
                     const SizedBox(height: 18),

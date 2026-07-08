@@ -116,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               if (auth.error != null)
-                Text(auth.error!, style: const TextStyle(color: Colors.red)),
+                Text(auth.error!, style: const TextStyle(color: Colors.red), maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
