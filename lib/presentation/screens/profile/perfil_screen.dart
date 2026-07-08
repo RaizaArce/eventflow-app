@@ -212,6 +212,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
               color: Colors.white,
               letterSpacing: 0.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Container(
@@ -386,10 +388,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 title: Text(
                   e.nombre,
                   style: const TextStyle(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
                   '${e.direccion} · ${e.estado}',
                   style: const TextStyle(color: Colors.grey),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

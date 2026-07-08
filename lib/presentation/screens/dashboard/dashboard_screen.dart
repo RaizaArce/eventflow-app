@@ -1,12 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/evento_provider.dart';
 import '../events/eventos_screen.dart';
 import '../events/crear_evento_screen.dart';
-import '../selectors/seleccionar_evento_screen.dart';
-import '../attendance/escanear_asistencia_screen.dart';
-import '../profile/perfil_screen.dart';
+import '../events/detalle_evento_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -38,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final ep = context.watch<EventoProvider>();
-    final eventos = ep.eventos;
+    final eventosRecientes = ep.eventosRecientes.take(5).toList();
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -51,19 +50,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Hola, $nombreUsuario',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hola, $nombreUsuario',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const Text('Organizador', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade700,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${ep.total} eventos',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ],
                 ),
-                const Text('Organizador', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade700,
+                    gradient: LinearGradient(
+                      colors: [Colors.green.shade700, Colors.green.shade500],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -71,35 +97,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       const Text(
                         'Resumen general',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _statItem(Icons.event, '${ep.total}', 'Eventos'),
+                          _statItem(Icons.event, '${ep.total}', 'Total'),
                           _statItem(Icons.schedule, '${ep.proximos}', 'Próximos'),
-                          _statItem(
-                            Icons.play_circle_outline,
-                            '${ep.enCurso}',
-                            'En curso',
-                          ),
+                          _statItem(Icons.play_circle_outline, '${ep.enCurso}', 'En curso'),
+                          _statItem(Icons.check_circle, '${ep.finalizados}', 'Cerrados'),
                         ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Acceso rápido',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Últimos eventos',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventosScreen())),
+                      child: const Text('Ver todos'),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                if (ep.cargando)
+                  const Center(child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(),
+                  ))
+                else if (ep.error != null)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(ep.error!, style: const TextStyle(color: Colors.red), maxLines: 3, overflow: TextOverflow.ellipsis),
+                    ),
+                  )
+                else if (eventosRecientes.isEmpty)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.event_busy, size: 48, color: Colors.grey.shade400),
+                            const SizedBox(height: 8),
+                            Text('Aún no hay eventos', style: TextStyle(color: Colors.grey.shade500)),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Crear primer evento'),
+                              onPressed: () async {
+                                final creado = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CrearEventoScreen()));
+                                if (creado == true && mounted) context.read<EventoProvider>().cargarEventos();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ...eventosRecientes.map((e) => _buildEventCard(e)),
                 const SizedBox(height: 12),
-                _buildQuickActionGrid(eventos),
+                _buildQuickActions(),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -108,149 +176,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildQuickActionGrid(List eventos) {
-    final actions = [
-      _Accion(
-        icono: Icons.add_circle_outline,
-        color: Colors.green,
-        titulo: 'Crear evento',
-        subtitulo: 'Nuevo evento desde cero',
-        onTap: () async {
-          final creado = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CrearEventoScreen()),
-          );
-          if (creado == true && mounted) {
-            context.read<EventoProvider>().cargarEventos();
-            _mostrarSnackbar('Evento creado correctamente', Colors.green);
-          }
-        },
-      ),
-      _Accion(
-        icono: Icons.calendar_month,
-        color: Colors.blue,
-        titulo: 'Mis eventos',
-        subtitulo: '${eventos.length} evento${eventos.length == 1 ? '' : 's'}',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const EventosScreen()),
-          );
-        },
-      ),
-      _Accion(
-        icono: Icons.people_outline,
-        color: Colors.orange,
-        titulo: 'Participantes',
-        subtitulo: 'Gestiona asistentes',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const SeleccionarEventoScreen(destino: 'participantes'),
-            ),
-          );
-        },
-      ),
-      _Accion(
-        icono: Icons.event_note,
-        color: Colors.purple,
-        titulo: 'Agenda',
-        subtitulo: 'Actividades del evento',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const SeleccionarEventoScreen(destino: 'agenda'),
-            ),
-          );
-        },
-      ),
-      _Accion(
-        icono: Icons.qr_code_scanner,
-        color: Colors.teal,
-        titulo: 'Escanear QR',
-        subtitulo: 'Registrar asistencia',
-        onTap: () {
-          if (eventos.isEmpty) {
-            _mostrarSnackbar('Primero crea un evento', Colors.orange);
-            return;
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => EscanearAsistenciaScreen(
-                eventoId: eventos.first.id!,
-              ),
-            ),
-          );
-        },
-      ),
-      _Accion(
-        icono: Icons.person_outline,
-        color: Colors.indigo,
-        titulo: 'Mi perfil',
-        subtitulo: 'Estadísticas y configuración',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PerfilScreen()),
-          );
-        },
-      ),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: actions.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.1,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemBuilder: (context, index) => _buildCard(actions[index]),
-    );
-  }
-
-  Widget _buildCard(_Accion accion) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      elevation: 1,
+  Widget _buildEventCard(e) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: accion.onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        borderRadius: BorderRadius.circular(14),
+        onTap: () async {
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => DetalleEventoScreen(eventoId: e.id!)));
+          if (mounted) context.read<EventoProvider>().cargarEventos();
+        },
+        child: Container(
+          height: 160,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            color: Colors.white,
+            boxShadow: [BoxShadow(color: Colors.black.withAlpha(13), blurRadius: 8, offset: const Offset(0, 2))],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Row(
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: accion.color.withAlpha(25),
-                  borderRadius: BorderRadius.circular(12),
+              if (e.imagenUrl != null && e.imagenUrl!.isNotEmpty)
+                SizedBox(
+                  width: 140,
+                  child: Image.memory(
+                    base64Decode(e.imagenUrl!),
+                    fit: BoxFit.cover,
+                    width: 140,
+                    height: 160,
+                    errorBuilder: (_, __, ___) => _cardPlaceholder(),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: 140,
+                  child: _cardPlaceholder(),
                 ),
-                child: Icon(accion.icono, color: accion.color, size: 22),
-              ),
-              const Spacer(),
-              Text(
-                accion.titulo,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                accion.subtitulo,
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 11,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.nombre,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              e.direccion,
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          _estadoChip(e.estado),
+                          const Spacer(),
+                          Text(
+                            _fecha(e.fechaInicio),
+                            style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -260,23 +260,103 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _cardPlaceholder() {
+    return Container(
+      color: Colors.green.shade50,
+      child: Center(
+        child: Icon(Icons.event, size: 40, color: Colors.green.shade200),
+      ),
+    );
+  }
+
+  Widget _estadoChip(String? estado) {
+    MaterialColor color;
+    String label;
+    switch (estado) {
+      case 'Publicado':
+        color = Colors.amber;
+        label = 'Próximo';
+      case 'EnCurso':
+        color = Colors.green;
+        label = 'En curso';
+      case 'Finalizado':
+        color = Colors.grey;
+        label = 'Finalizado';
+      case 'Borrador':
+        color = Colors.blue;
+        label = 'Borrador';
+      default:
+        color = Colors.grey;
+        label = estado ?? '-';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withAlpha(30),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label, style: TextStyle(color: color.shade700, fontSize: 11, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  String _fecha(DateTime? fecha) {
+    if (fecha == null) return '';
+    return '${fecha.day}/${fecha.month}/${fecha.year}';
+  }
+
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        _actionChip(Icons.add_circle_outline, 'Crear', Colors.green, () async {
+          final creado = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CrearEventoScreen()));
+          if (creado == true && mounted) context.read<EventoProvider>().cargarEventos();
+        }),
+        _actionChip(Icons.calendar_month, 'Eventos', Colors.blue, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventosScreen()))),
+        _actionChip(Icons.qr_code_scanner, 'Escanear', Colors.teal, () {
+          final eventos = context.read<EventoProvider>().eventos;
+          if (eventos.isEmpty) {
+            _mostrarSnackbar('Primero crea un evento', Colors.orange);
+            return;
+          }
+          Navigator.push(context, MaterialPageRoute(builder: (_) => DetalleEventoScreen(eventoId: eventos.first.id!)));
+        }),
+      ],
+    );
+  }
+
+  Widget _actionChip(IconData icono, String label, MaterialColor color, VoidCallback onTap) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                children: [
+                  Icon(icono, color: color, size: 24),
+                  const SizedBox(height: 4),
+                  Text(label, style: TextStyle(color: color.shade700, fontSize: 12, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _statItem(IconData icon, String numero, String label) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white),
+        Icon(icon, color: Colors.white, size: 22),
         const SizedBox(height: 4),
-        Text(
-          numero,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
-        ),
+        Text(numero, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
       ],
     );
   }
@@ -286,11 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Text(mensaje),
-          ],
+          children: [Icon(Icons.check_circle, color: Colors.white, size: 18), const SizedBox(width: 8), Flexible(child: Text(mensaje))],
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
@@ -298,20 +374,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-}
-
-class _Accion {
-  final IconData icono;
-  final Color color;
-  final String titulo;
-  final String subtitulo;
-  final VoidCallback onTap;
-
-  _Accion({
-    required this.icono,
-    required this.color,
-    required this.titulo,
-    required this.subtitulo,
-    required this.onTap,
-  });
 }

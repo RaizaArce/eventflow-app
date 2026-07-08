@@ -18,8 +18,9 @@ class AuthRepository {
     await prefs.setString('token', usuario.token);
     await prefs.setString('nombre', usuario.nombre);
     await prefs.setString('rol', usuario.rol);
-    if (usuario.id != null) {
-      await prefs.setInt('userId', usuario.id!);
+    final userId = _userIdFromToken(usuario.token);
+    if (userId != null) {
+      await prefs.setInt('userId', userId);
     }
     return usuario;
   }
@@ -81,7 +82,8 @@ class AuthRepository {
       }
       final decoded = utf8.decode(base64.decode(payload));
       final map = jsonDecode(decoded) as Map<String, dynamic>;
-      return map['id'] as int?;
+      final sub = map['sub'] as String?;
+      return sub != null ? int.tryParse(sub) : null;
     } catch (_) {
       return null;
     }

@@ -187,6 +187,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                                     fontSize: 15,
                                                     color: Colors.black87,
                                                   ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               PopupMenuButton(
@@ -259,6 +261,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                                 color: Colors.grey.shade600,
                                                 fontSize: 13,
                                               ),
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
                                           const SizedBox(height: 8),
@@ -290,13 +294,17 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                                   color: Colors.grey,
                                                 ),
                                                 const SizedBox(width: 4),
-                                                Text(
-                                                  a.responsable,
-                                                  style: const TextStyle(
-                                                    color: Colors.grey,
-                                                    fontSize: 12,
-                                                  ),
+                                            Flexible(
+                                              child: Text(
+                                                a.responsable,
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 12,
                                                 ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
                                               ],
                                             ),
                                           ],

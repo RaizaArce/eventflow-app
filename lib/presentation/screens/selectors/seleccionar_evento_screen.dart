@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/evento_provider.dart';
@@ -23,6 +24,28 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
   MaterialColor get colorAcento => esParticipantes ? Colors.blue : Colors.orange;
   IconData get iconoDestino => esParticipantes ? Icons.people : Icons.schedule;
   String get tituloAppBar => esParticipantes ? 'Participantes' : 'Agenda';
+
+  Widget _avatarSelector(String? imagenUrl) {
+    if (imagenUrl == null || imagenUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 18,
+        backgroundColor: colorAcento.shade50,
+        child: Icon(iconoDestino, size: 18, color: colorAcento.shade700),
+      );
+    }
+    try {
+      return CircleAvatar(
+        radius: 18,
+        backgroundImage: MemoryImage(base64Decode(imagenUrl)),
+      );
+    } catch (_) {
+      return CircleAvatar(
+        radius: 18,
+        backgroundColor: colorAcento.shade50,
+        child: Icon(iconoDestino, size: 18, color: colorAcento.shade700),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -166,17 +189,7 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
                                             children: [
                                               Row(
                                                 children: [
-                                                  CircleAvatar(
-                                                    radius: 18,
-                                                    backgroundColor:
-                                                        colorAcento.shade50,
-                                                    child: Icon(
-                                                      iconoDestino,
-                                                      size: 18,
-                                                      color:
-                                                          colorAcento.shade700,
-                                                    ),
-                                                  ),
+                                                  _avatarSelector(e.imagenUrl),
                                                   const SizedBox(width: 10),
                                                   Expanded(
                                                     child: Column(
@@ -194,6 +207,10 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
                                                             color:
                                                                 Colors.black87,
                                                           ),
+                                                          maxLines: 1,
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
                                                         ),
                                                         Text(
                                                           e.direccion,

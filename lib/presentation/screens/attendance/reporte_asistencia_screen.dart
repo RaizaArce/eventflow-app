@@ -96,13 +96,15 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
               child: Icon(icono, color: color),
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(titulo, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-                const SizedBox(height: 4),
-                Text(valor, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(titulo, style: const TextStyle(fontSize: 14, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text(valor, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
             )
           ],
         ),
@@ -210,8 +212,8 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
                                         color: Colors.white,
                                       ),
                                     ),
-                                    title: Text(p['nombre'] ?? 'Participante'),
-                                    subtitle: Text('DNI: ${p['dni'] ?? "—"} • $estado'),
+                                    title: Text(p['nombre'] ?? 'Participante', maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    subtitle: Text('DNI: ${p['dni'] ?? "—"} • $estado', maxLines: 1, overflow: TextOverflow.ellipsis),
                                     trailing: estado == 'Confirmada'
                                         ? const Icon(Icons.done_all, color: Colors.green)
                                         : const Icon(Icons.more_horiz, color: Colors.grey),

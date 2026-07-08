@@ -108,10 +108,14 @@ class _RegistrarManualScreenState extends State<RegistrarManualScreen> {
                         title: Text(
                           p['nombre'] ?? '',
                           style: const TextStyle(fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
                           'DNI: ${p['dni'] ?? ''}',
                           style: const TextStyle(color: Colors.grey),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         trailing: IconButton(
                           icon: Icon(Icons.check_circle_outline, color: Colors.green.shade700),

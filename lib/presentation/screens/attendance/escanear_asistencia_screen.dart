@@ -142,7 +142,7 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text('${resultadoExitoso!['nombre']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text('${resultadoExitoso!['nombre']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                             Text('DNI: ${resultadoExitoso!['dni'] ?? ''}'),
                           ],
                         ),

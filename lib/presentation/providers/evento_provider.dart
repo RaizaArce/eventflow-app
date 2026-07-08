@@ -13,6 +13,7 @@ class EventoProvider extends ChangeNotifier {
   String? _error;
 
   List<Evento> get eventos => _eventos;
+  List<Evento> get eventosRecientes => _eventos.reversed.toList();
   Evento? get eventoSeleccionado => _eventoSeleccionado;
   bool get cargando => _cargando;
   String? get error => _error;

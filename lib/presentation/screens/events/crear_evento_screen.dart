@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/evento.dart';
 import '../../providers/auth_provider.dart';
@@ -29,6 +32,8 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
 
   bool guardando = false;
   String estadoSeleccionado = 'Borrador';
+  File? imagenSeleccionada;
+  String? imagenBase64;
 
   final estados = ['Borrador', 'Publicado', 'EnCurso', 'Finalizado'];
 
@@ -170,7 +175,7 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
               size: 18,
             ),
             const SizedBox(width: 8),
-            Text(mensaje),
+            Flexible(child: Text(mensaje)),
           ],
         ),
         backgroundColor: color,
@@ -178,6 +183,23 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
+  }
+
+  Future<void> seleccionarImagen() async {
+    final picker = ImagePicker();
+    final xfile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 600,
+      imageQuality: 70,
+    );
+    if (xfile == null) return;
+    final file = File(xfile.path);
+    final bytes = await file.readAsBytes();
+    setState(() {
+      imagenSeleccionada = file;
+      imagenBase64 = base64Encode(bytes);
+    });
   }
 
   Future<void> guardarEvento() async {
@@ -231,6 +253,7 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
         longitud: longitud,
         aforo: aforo,
         estado: estadoSeleccionado,
+        imagenUrl: imagenBase64,
       );
 
       final ep = context.read<EventoProvider>();
@@ -462,6 +485,51 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            _buildSectionCard(
+              icon: Icons.image,
+              titulo: 'Imagen del evento',
+              children: [
+                GestureDetector(
+                  onTap: seleccionarImagen,
+                  child: Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: imagenSeleccionada != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              imagenSeleccionada!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate, size: 48, color: Colors.grey.shade400),
+                              const SizedBox(height: 8),
+                              Text('Toca para seleccionar imagen', style: TextStyle(color: Colors.grey.shade500)),
+                            ],
+                          ),
+                  ),
+                ),
+                if (imagenSeleccionada != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('Quitar imagen'),
+                    onPressed: () => setState(() {
+                      imagenSeleccionada = null;
+                      imagenBase64 = null;
+                    }),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  ),
+              ],
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -532,6 +600,8 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

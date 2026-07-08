@@ -12,6 +12,7 @@ class Evento {
   final DateTime? fechaFin;
   final int? cantidadParticipantes;
   final int? cantidadActividades;
+  final String? imagenUrl;
 
   Evento({
     this.id,
@@ -27,6 +28,7 @@ class Evento {
     this.fechaFin,
     this.cantidadParticipantes,
     this.cantidadActividades,
+    this.imagenUrl,
   });
 
   factory Evento.fromJson(Map<String, dynamic> json) {
@@ -56,6 +58,7 @@ class Evento {
       cantidadActividades: json['cantidad_actividades'] is int
           ? json['cantidad_actividades']
           : int.tryParse(json['cantidad_actividades']?.toString() ?? ''),
+      imagenUrl: json['imagen_url'] as String?,
     );
   }
 
@@ -72,6 +75,7 @@ class Evento {
       'estado': estado,
       'fecha_inicio': fechaInicio?.toIso8601String(),
       'fecha_fin': fechaFin?.toIso8601String(),
+      'imagen_url': imagenUrl,
     };
   }
 }

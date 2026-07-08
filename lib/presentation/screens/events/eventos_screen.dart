@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/evento_provider.dart';
@@ -46,6 +47,26 @@ class _EventosScreenState extends State<EventosScreen> {
         return Colors.blue;
       default:
         return Colors.grey;
+    }
+  }
+
+  Widget _avatarEvento(String? imagenUrl) {
+    if (imagenUrl == null || imagenUrl.isEmpty) {
+      return CircleAvatar(
+        backgroundColor: Colors.green.shade700,
+        child: const Icon(Icons.event, color: Colors.white),
+      );
+    }
+    try {
+      return CircleAvatar(
+        radius: 22,
+        backgroundImage: MemoryImage(base64Decode(imagenUrl)),
+      );
+    } catch (_) {
+      return CircleAvatar(
+        backgroundColor: Colors.green.shade700,
+        child: const Icon(Icons.event, color: Colors.white),
+      );
     }
   }
 
@@ -191,29 +212,28 @@ class _EventosScreenState extends State<EventosScreen> {
                                                 .cargarEventos();
                                           }
                                         },
-                                        child: ListTile(
+                                          child: ListTile(
                                           contentPadding:
                                               const EdgeInsets.symmetric(
                                             horizontal: 16,
                                             vertical: 8,
                                           ),
-                                          leading: CircleAvatar(
-                                            backgroundColor:
-                                                Colors.green.shade700,
-                                            child: const Icon(Icons.event,
-                                                color: Colors.white),
-                                          ),
+                                          leading: _avatarEvento(e.imagenUrl),
                                           title: Text(
                                             e.nombre,
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black87,
                                             ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                           subtitle: Text(
                                             e.direccion,
                                             style: const TextStyle(
                                                 color: Colors.grey),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                           trailing: Chip(
                                             label: Text(
@@ -233,7 +253,7 @@ class _EventosScreenState extends State<EventosScreen> {
                                             visualDensity:
                                                 VisualDensity.compact,
                                           ),
-                                        ),
+                                          ),
                                       ),
                                     ),
                                   ),

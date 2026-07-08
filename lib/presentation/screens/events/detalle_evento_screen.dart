@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -132,7 +133,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
               size: 18,
             ),
             const SizedBox(width: 8),
-            Text(mensaje),
+            Flexible(child: Text(mensaje)),
           ],
         ),
         backgroundColor: color,
@@ -179,13 +180,34 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(valor, style: const TextStyle(color: Colors.black87)),
+                Text(valor, style: const TextStyle(color: Colors.black87), maxLines: 3, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _bannerImagen(String imagenUrl) {
+    try {
+      final bytes = base64Decode(imagenUrl);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Image.memory(
+            bytes,
+            height: 200,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
+        ),
+      );
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
   }
 
   @override
@@ -371,6 +393,8 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
                                       ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 8),
                                     Chip(
@@ -416,6 +440,8 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                               ),
                             ),
                           ),
+                          if (evento.imagenUrl != null && evento.imagenUrl!.isNotEmpty)
+                            _bannerImagen(evento.imagenUrl!),
                           const SizedBox(height: 16),
                           Card(
                             elevation: 1,
