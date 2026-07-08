@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
-import 'seleccionar_ubicacion_screen.dart';
+import '../../../data/api_client.dart';
+import '../maps/seleccionar_ubicacion_screen.dart';
 
 class CrearEventoScreen extends StatefulWidget {
   final Map<String, dynamic>? evento;
@@ -151,7 +151,9 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icono),
-      border: const OutlineInputBorder(),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
     );
   }
 
@@ -321,11 +323,18 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     final textoBoton = esEdicion ? 'Guardar cambios' : 'Crear evento';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(tituloPantalla),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text(
+          tituloPantalla,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Form(
@@ -472,8 +481,11 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
               child: ElevatedButton.icon(
                 onPressed: guardando ? null : guardarEvento,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green.shade700,
                   foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 icon: guardando
                     ? const SizedBox(

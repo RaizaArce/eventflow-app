@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
+import '../../../data/api_client.dart';
+import '../../widgets/empty_state_widget.dart';
+import '../../widgets/shimmer_loading.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -72,7 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: Colors.green.shade700,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -107,19 +109,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              if (cargando) const Center(child: CircularProgressIndicator()),
+              if (cargando) const ShimmerCardList(itemCount: 3),
               if (mensajeError.isNotEmpty)
                 Text(mensajeError, style: const TextStyle(color: Colors.red)),
               if (!cargando && eventos.isEmpty && mensajeError.isEmpty)
-                const Text('Todavía no tienes eventos creados.'),
+                const EmptyStateWidget(
+                  icono: Icons.event_busy,
+                  mensaje: 'Todavía no tienes eventos creados',
+                  subtitulo: 'Crea tu primer evento desde la pestaña Eventos',
+                ),
               ...eventos.map(
                 (e) => Card(
                   margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   child: ListTile(
-                    leading: const Icon(Icons.event, color: Colors.green),
-                    title: Text(e['nombre'] ?? ''),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.green.shade700,
+                      child: const Icon(Icons.event, color: Colors.white),
+                    ),
+                    title: Text(
+                      e['nombre'] ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Text(
                       '${e['direccion'] ?? ''} · ${e['estado'] ?? ''}',
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ),
                 ),

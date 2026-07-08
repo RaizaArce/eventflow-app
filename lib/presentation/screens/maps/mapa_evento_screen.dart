@@ -26,9 +26,17 @@ class _MapaEventoScreenState extends State<MapaEventoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Ubicación del evento"),
-        backgroundColor: Colors.green,
+        title: const Text(
+          "Ubicación del evento",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: GoogleMap(
         initialCameraPosition: CameraPosition(

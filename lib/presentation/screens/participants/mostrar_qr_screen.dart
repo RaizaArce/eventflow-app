@@ -12,9 +12,17 @@ class MostrarQrScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Código QR de Acceso'),
-        backgroundColor: Colors.green,
+        title: const Text(
+          'Código QR de Acceso',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Center(
         child: Padding(

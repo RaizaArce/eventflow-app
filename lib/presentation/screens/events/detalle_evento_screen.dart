@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
+import '../../../data/api_client.dart';
+import '../../widgets/shimmer_loading.dart';
 import 'crear_evento_screen.dart';
-import 'participantes_screen.dart';
-import 'escanear_asistencia_screen.dart';
-import 'reporte_asistencia_screen.dart';
-import 'agenda_screen.dart';
-import 'mapa_evento_screen.dart';
+import '../participants/participantes_screen.dart';
+import '../attendance/escanear_asistencia_screen.dart';
+import '../attendance/reporte_asistencia_screen.dart';
+import '../agenda/agenda_screen.dart';
+import '../maps/mapa_evento_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
   final int eventoId;
@@ -149,7 +150,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icono, color: Colors.green),
+          Icon(icono, color: Colors.green.shade700),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -218,40 +219,50 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
     ], defecto: '0');
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Detalle del evento'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text(
+          'Detalle del evento',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: cargando
-          ? const Center(child: CircularProgressIndicator())
+          ? const ShimmerDetailCard()
           : mensajeError.isNotEmpty
-          ? Center(child: Text(mensajeError))
+          ? Center(child: Text(mensajeError, style: const TextStyle(color: Colors.red)))
           : RefreshIndicator(
               onRefresh: cargarDetalleEvento,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const CircleAvatar(
-                            radius: 28,
-                            backgroundColor: Colors.green,
-                            child: Icon(
-                              Icons.event,
-                              color: Colors.white,
-                              size: 30,
+                  Hero(
+                    tag: 'evento_${widget.eventoId}',
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 28,
+                              backgroundColor: Colors.green.shade700,
+                              child: const Icon(
+                                Icons.event,
+                                color: Colors.white,
+                                size: 30,
+                              ),
                             ),
-                          ),
                           const SizedBox(height: 14),
                           Text(
                             nombre,
@@ -264,8 +275,8 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                           Chip(
                             label: Text(estado),
                             backgroundColor: Colors.green.shade50,
-                            labelStyle: const TextStyle(
-                              color: Colors.green,
+                            labelStyle: TextStyle(
+                              color: Colors.green.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -299,10 +310,12 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       ),
                     ),
                   ),
+                  ),
                   const SizedBox(height: 16),
                   Card(
+                    elevation: 1,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(18),
@@ -341,8 +354,12 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.green.shade700,
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       icon: const Icon(Icons.edit),
                       label: const Text('Editar evento'),
@@ -356,6 +373,10 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       icon: const Icon(Icons.delete),
                       label: const Text('Eliminar evento'),

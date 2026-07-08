@@ -1,0 +1,344 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../data/api_client.dart';
+import '../../widgets/empty_state_widget.dart';
+import '../../widgets/shimmer_loading.dart';
+import 'crear_agenda_screen.dart';
+
+class AgendaScreen extends StatefulWidget {
+  final int eventoId;
+
+  const AgendaScreen({super.key, required this.eventoId});
+
+  @override
+  State<AgendaScreen> createState() => _AgendaScreenState();
+}
+
+class _AgendaScreenState extends State<AgendaScreen> {
+  final api = ApiClient();
+
+  List<dynamic> agenda = [];
+  bool cargando = true;
+  String error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    cargarAgenda();
+  }
+
+  Future<void> cargarAgenda() async {
+    setState(() {
+      cargando = true;
+      error = '';
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      api.setToken(token);
+
+      final response =
+          await api.dio.get('/eventos/${widget.eventoId}/agenda');
+
+      agenda = response.data;
+    } catch (e) {
+      error = 'No se pudo cargar la agenda';
+    } finally {
+      setState(() {
+        cargando = false;
+      });
+    }
+  }
+
+  Future<void> eliminarActividad(int id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      api.setToken(token);
+
+      await api.dio.delete('/agenda/$id');
+
+      cargarAgenda();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo eliminar la actividad')),
+      );
+    }
+  }
+
+  void confirmarEliminacion(int id) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Eliminar actividad'),
+        content: const Text('¿Seguro que deseas eliminar esta actividad?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              eliminarActividad(id);
+            },
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String formatearHora(String fechaIso) {
+    try {
+      final fecha = DateTime.parse(fechaIso);
+      return '${fecha.hour.toString().padLeft(2, '0')}:'
+          '${fecha.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return fechaIso;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text(
+          'Agenda del evento',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: RefreshIndicator(
+        onRefresh: cargarAgenda,
+        child: cargando
+            ? const ShimmerCardList()
+            : error.isNotEmpty
+                ? Center(child: Text(error, style: const TextStyle(color: Colors.red)))
+                : agenda.isEmpty
+                    ? const EmptyStateWidget(
+                        icono: Icons.schedule,
+                        mensaje: 'No hay actividades en la agenda',
+                        subtitulo: 'Agrega la primera actividad con el botón +',
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        itemCount: agenda.length,
+                        itemBuilder: (context, index) {
+                          final a = agenda[index];
+                          final isLast = index == agenda.length - 1;
+
+                          return IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SizedBox(
+                                  width: 50,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        width: 2,
+                                        height: index == 0 ? 12 : 0,
+                                        color: Colors.green.shade200,
+                                      ),
+                                      Container(
+                                        width: 14,
+                                        height: 14,
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade700,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: const SizedBox(),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          width: 2,
+                                          color: isLast
+                                              ? Colors.transparent
+                                              : Colors.green.shade200,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    elevation: 1,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  a['titulo'] ?? '',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                              ),
+                                              PopupMenuButton(
+                                                icon: const Icon(
+                                                  Icons.more_vert,
+                                                  size: 18,
+                                                  color: Colors.grey,
+                                                ),
+                                                itemBuilder: (context) => [
+                                                  const PopupMenuItem(
+                                                    value: 'editar',
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(Icons.edit, size: 18),
+                                                        SizedBox(width: 8),
+                                                        Text('Editar'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  const PopupMenuItem(
+                                                    value: 'eliminar',
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.delete,
+                                                          size: 18,
+                                                          color: Colors.red,
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text(
+                                                          'Eliminar',
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                                onSelected: (value) async {
+                                                  if (value == 'eliminar') {
+                                                    confirmarEliminacion(a['id']);
+                                                  }
+                                                  if (value == 'editar') {
+                                                    final result =
+                                                        await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            CrearAgendaScreen(
+                                                          eventoId:
+                                                              widget.eventoId,
+                                                          agenda: a,
+                                                        ),
+                                                      ),
+                                                    );
+                                                    if (result == true) {
+                                                      cargarAgenda();
+                                                    }
+                                                  }
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          if ((a['descripcion'] ?? '').isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              a['descripcion'] ?? '',
+                                              style: TextStyle(
+                                                color: Colors.grey.shade600,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.access_time,
+                                                size: 14,
+                                                color: Colors.green.shade700,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${formatearHora(a['hora_inicio'] ?? '')} - ${formatearHora(a['hora_fin'] ?? '')}',
+                                                style: TextStyle(
+                                                  color: Colors.green.shade700,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if ((a['responsable'] ?? '').isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.person,
+                                                  size: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  a['responsable'] ?? '',
+                                                  style: const TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green.shade700,
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  CrearAgendaScreen(eventoId: widget.eventoId),
+            ),
+          );
+
+          if (result == true) {
+            cargarAgenda();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}

@@ -121,15 +121,17 @@ class _SeleccionarUbicacionScreenState
     return Scaffold(
 
       appBar: AppBar(
-
         title: const Text(
           "Seleccionar ubicación",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
         ),
-
-        backgroundColor: Colors.green,
-
+        backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
-
+        elevation: 0,
       ),
 
 
@@ -204,7 +206,7 @@ class _SeleccionarUbicacionScreenState
 
             heroTag: "gps",
 
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.green.shade700,
 
             onPressed:
                 obtenerUbicacionActual,
@@ -227,9 +229,8 @@ class _SeleccionarUbicacionScreenState
 
             heroTag: "guardar",
 
-
             backgroundColor:
-                Colors.green,
+                Colors.green.shade700,
 
 
 

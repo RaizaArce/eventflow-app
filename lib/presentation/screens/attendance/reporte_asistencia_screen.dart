@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
+import '../../../data/api_client.dart';
+import '../../widgets/empty_state_widget.dart';
+import '../../widgets/shimmer_loading.dart';
 
 class ReporteAsistenciaScreen extends StatefulWidget {
   final int eventoId;
@@ -87,8 +89,8 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
 
   Widget cardEstadistica(String titulo, String valor, IconData icono, Color color) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -115,11 +117,24 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Métricas de Asistencia')),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text(
+          'Métricas de Asistencia',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: cargando
-          ? const Center(child: CircularProgressIndicator())
+          ? const ShimmerDetailCard()
           : reporte == null
-              ? const Center(child: Text('Error al procesar el reporte de asistencia.'))
+              ? const Center(child: Text('Error al procesar el reporte de asistencia.', style: TextStyle(color: Colors.red)))
               : Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ListView(
@@ -155,8 +170,10 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
                                 )
                               : null,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
+                          filled: true,
+                          fillColor: Colors.white,
                           contentPadding: const EdgeInsets.symmetric(vertical: 0),
                         ),
                       ),
@@ -165,7 +182,10 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
                       participantesFiltrados.isEmpty
                           ? const Padding(
                               padding: EdgeInsets.symmetric(vertical: 20.0),
-                              child: Center(child: Text('No se encontraron participantes.')),
+                              child: EmptyStateWidget(
+                                icono: Icons.people_outline,
+                                mensaje: 'No se encontraron participantes',
+                              ),
                             )
                           : ListView.builder(
                               shrinkWrap: true,
@@ -178,7 +198,15 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
 
                                 return Card(
                                   margin: const EdgeInsets.symmetric(vertical: 4),
+                                  elevation: 1,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
                                   child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
                                     leading: CircleAvatar(
                                       backgroundColor: colorEstado,
                                       child: Icon(

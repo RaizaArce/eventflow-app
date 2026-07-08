@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
-import 'agenda_screen.dart';
+import '../../../data/api_client.dart';
 
 class CrearAgendaScreen extends StatefulWidget {
   final int eventoId;
@@ -166,7 +165,9 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon),
-      border: const OutlineInputBorder(),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
     );
   }
 
@@ -175,10 +176,18 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
     final titulo = esEdicion ? 'Editar actividad' : 'Crear actividad';
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(titulo),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text(
+          titulo,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Form(
@@ -234,8 +243,11 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
               child: ElevatedButton(
                 onPressed: guardando ? null : guardar,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green.shade700,
                   foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: guardando
                     ? const CircularProgressIndicator(color: Colors.white)

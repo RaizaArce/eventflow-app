@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
+import '../../../data/api_client.dart';
 import 'package:flutter/services.dart';
 
 class RegistrarParticipanteScreen extends StatefulWidget {
@@ -109,13 +109,22 @@ Future<void> registrarParticipante() async {
   @override
 Widget build(BuildContext context) {
   return Scaffold(
+    backgroundColor: Colors.grey.shade50,
     appBar: AppBar(
       title: Text(
         widget.participante == null
         ? 'Registrar participante'
         : 'Editar participante',
-  ),
-),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: Colors.green.shade700,
+      foregroundColor: Colors.white,
+      elevation: 0,
+    ),
     body: Form(
       key: _formKey,
       child: ListView(
@@ -130,9 +139,11 @@ Widget build(BuildContext context) {
                 RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ ]'),
                 ),
                 ],
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Nombre',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -153,9 +164,11 @@ Widget build(BuildContext context) {
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(8),
                           ],
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'DNI',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -174,9 +187,11 @@ Widget build(BuildContext context) {
                         TextFormField(
                           controller: correoController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Correo',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -200,9 +215,11 @@ Widget build(BuildContext context) {
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(9),
                           ],
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Teléfono',
-                            border: OutlineInputBorder(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -220,6 +237,13 @@ Widget build(BuildContext context) {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: cargando ? null : registrarParticipante,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade700,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
                               icon: cargando
                               ? const SizedBox(
                                   width: 20,

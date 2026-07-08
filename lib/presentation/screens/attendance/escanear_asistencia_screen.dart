@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api_client.dart';
+import '../../../data/api_client.dart';
 import 'registrar_manual_screen.dart';
 
 class EscanearAsistenciaScreen extends StatefulWidget {
@@ -68,8 +68,19 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Escanear QR de Entrada'),
+        title: const Text(
+          'Escanear QR de Entrada',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.flash_on),
@@ -146,7 +157,13 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                       onPressed: () {
                         setState(() => resultadoExitoso = null);
                       },
