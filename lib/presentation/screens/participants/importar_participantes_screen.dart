@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
@@ -30,7 +31,7 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
   }
 
   Future<void> _seleccionarArchivo() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv', 'xlsx'],
       withData: true,
@@ -52,9 +53,19 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
       List<List<dynamic>>? rows;
 
       if (file.name.endsWith('.csv')) {
-        String csvText = String.fromCharCodes(bytes);
-        csvText = csvText.replaceFirst('\uFEFF', '');
-        rows = const CsvToListConverter(shouldParseNumbers: false).convert(csvText);
+        String csvText = utf8.decode(bytes);
+        csvText = csvText.replaceFirst('\uFEFF', '').trim();
+
+        String delimiter = ',';
+        final primeraLinea = csvText.split('\n').first.trim();
+        if (primeraLinea.contains(';')) delimiter = ';';
+
+        rows = CsvToListConverter(
+          shouldParseNumbers: false,
+          fieldDelimiter: delimiter,
+        ).convert(csvText);
+
+        rows = rows.where((r) => r.any((c) => c != null && c.toString().trim().isNotEmpty)).toList();
       } else if (file.name.endsWith('.xlsx')) {
         try {
           final excel = Excel.decodeBytes(bytes);

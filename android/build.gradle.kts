@@ -5,6 +5,14 @@ allprojects {
     }
 }
 
+subprojects {
+    when {
+        project.name == "file_picker" || project.name == "mobile_scanner" -> {
+            plugins.apply("org.jetbrains.kotlin.android")
+        }
+    }
+}
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

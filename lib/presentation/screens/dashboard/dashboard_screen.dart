@@ -101,12 +101,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 12),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _statItem(Icons.event, '${ep.total}', 'Total'),
-                          _statItem(Icons.schedule, '${ep.proximos}', 'Próximos'),
-                          _statItem(Icons.play_circle_outline, '${ep.enCurso}', 'En curso'),
-                          _statItem(Icons.check_circle, '${ep.finalizados}', 'Cerrados'),
+                          Expanded(child: _statItem(Icons.event, '${ep.total}', 'Total')),
+                          Expanded(child: _statItem(Icons.schedule, '${ep.proximos}', 'Próximos')),
+                          Expanded(child: _statItem(Icons.play_circle_outline, '${ep.enCurso}', 'En curso')),
+                          Expanded(child: _statItem(Icons.check_circle, '${ep.finalizados}', 'Cerrados')),
                         ],
                       ),
                     ],
@@ -260,7 +259,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           fit: BoxFit.cover,
           width: 140,
           height: 160,
-          errorBuilder: (_, __, ___) => _cardPlaceholder(),
+          errorBuilder: (_, _, _) => _cardPlaceholder(),
         ),
       );
     } catch (_) {
