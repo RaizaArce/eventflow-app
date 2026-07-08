@@ -1,42 +1,33 @@
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
-  final Dio dio = Dio(
-    BaseOptions(
-      baseUrl: 'https://eventflowtdam.pythonanywhere.com',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-    ),
-  );
+  late final Dio dio;
 
   ApiClient() {
-    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
-  }
-
-  // Registrar un nuevo usuario
-  Future<Map<String, dynamic>> registro(
-    String nombre,
-    String correo,
-    String contrasena,
-  ) async {
-    final response = await dio.post(
-      '/auth/registro',
-      data: {'nombre': nombre, 'correo': correo, 'contrasena': contrasena},
+    dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://eventflowtdam.pythonanywhere.com',
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+      ),
     );
-    return response.data;
-  }
 
-  // Iniciar sesión
-  Future<Map<String, dynamic>> login(String correo, String contrasena) async {
-    final response = await dio.post(
-      '/auth/login',
-      data: {'correo': correo, 'contrasena': contrasena},
-    );
-    return response.data;
+    dio.interceptors.addAll([
+      _AuthInterceptor(),
+      LogInterceptor(requestBody: true, responseBody: true),
+    ]);
   }
+}
 
-  // Configurar el token para las siguientes peticiones (una vez logueado)
-  void setToken(String token) {
-    dio.options.headers['Authorization'] = 'Bearer $token';
+class _AuthInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+    handler.next(options);
   }
 }

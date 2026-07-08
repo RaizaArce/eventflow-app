@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/evento_provider.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/empty_state_widget.dart';
 
@@ -13,90 +13,21 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
-  final api = ApiClient();
   String nombre = '';
   String rol = '';
-  String correo = '';
-  int? userId;
-  List<dynamic> eventos = [];
-  bool cargando = true;
-  String mensajeError = '';
 
   @override
   void initState() {
     super.initState();
-    cargarDatos();
+    _init();
   }
 
-  int? _userIdFromToken(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return null;
-      String payload = parts[1];
-      payload = payload.replaceAll('-', '+').replaceAll('_', '/');
-      switch (payload.length % 4) {
-        case 0:
-          break;
-        case 2:
-          payload += '==';
-          break;
-        case 3:
-          payload += '=';
-          break;
-        default:
-          return null;
-      }
-      final decoded = utf8.decode(base64.decode(payload));
-      final map = jsonDecode(decoded) as Map<String, dynamic>;
-      return map['id'] as int?;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> cargarDatos() async {
-    setState(() {
-      cargando = true;
-      mensajeError = '';
-    });
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      nombre = prefs.getString('nombre') ?? 'Usuario';
-      rol = prefs.getString('rol') ?? 'Organizador';
-      correo = prefs.getString('correo') ?? '';
-
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
-      userId = prefs.getInt('userId');
-
-      if (userId == null) {
-        final idDesdeToken = _userIdFromToken(token);
-        if (idDesdeToken != null) {
-          userId = idDesdeToken;
-          await prefs.setInt('userId', idDesdeToken);
-        }
-      }
-
-      final response = await api.dio.get('/eventos');
-      eventos = response.data;
-    } catch (e) {
-      mensajeError = 'No se pudieron cargar los eventos';
-    } finally {
-      setState(() {
-        cargando = false;
-      });
-    }
-  }
-
-  String _iniciales(String texto) {
-    if (texto.isEmpty) return '?';
-    final partes = texto.trim().split(' ');
-    if (partes.length >= 2) {
-      return '${partes.first[0]}${partes.last[0]}'.toUpperCase();
-    }
-    return texto[0].toUpperCase();
+  Future<void> _init() async {
+    final auth = context.read<AuthProvider>();
+    nombre = await auth.getUserName();
+    rol = await auth.getUserRol();
+    if (mounted) setState(() {});
+    context.read<EventoProvider>().cargarEventos();
   }
 
   Future<void> cerrarSesion() async {
@@ -124,8 +55,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
 
     if (confirmar == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+      await context.read<AuthProvider>().logout();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -134,39 +64,42 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
+  String _iniciales(String texto) {
+    if (texto.isEmpty) return '?';
+    final partes = texto.trim().split(' ');
+    if (partes.length >= 2) {
+      return '${partes.first[0]}${partes.last[0]}'.toUpperCase();
+    }
+    return texto[0].toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final uid = userId;
-    final tieneOrgId =
-        eventos.isNotEmpty && (eventos.first as Map).containsKey('organizador_id');
+    final ep = context.watch<EventoProvider>();
+    final eventos = ep.eventos;
 
-    final misEventos = (tieneOrgId && uid != null)
-        ? eventos.where((e) => e['organizador_id'] == uid).toList()
-        : eventos;
+    final total = ep.total;
+    final borrador = ep.borrador;
+    final publicados = ep.proximos;
+    final enCurso = ep.enCurso;
+    final finalizados = ep.finalizados;
 
-    final total = misEventos.length;
-    final borrador = misEventos.where((e) => e['estado'] == 'Borrador').length;
-    final publicados = misEventos.where((e) => e['estado'] == 'Publicado').length;
-    final enCurso = misEventos.where((e) => e['estado'] == 'EnCurso').length;
-    final finalizados = misEventos.where((e) => e['estado'] == 'Finalizado').length;
-
-    final eventosRecientes =
-        misEventos.length > 3 ? misEventos.sublist(0, 3) : misEventos;
+    final eventosRecientes = eventos.length > 3 ? eventos.sublist(0, 3) : eventos;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: RefreshIndicator(
-        onRefresh: cargarDatos,
+        onRefresh: () => context.read<EventoProvider>().cargarEventos(),
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             _buildHeader(),
-            if (cargando)
+            if (ep.cargando)
               const Padding(
                 padding: EdgeInsets.all(48),
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (mensajeError.isNotEmpty)
+            else if (ep.error != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
                 child: Card(
@@ -183,7 +116,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            mensajeError,
+                            ep.error!,
                             style: TextStyle(color: Colors.red.shade700),
                           ),
                         ),
@@ -296,13 +229,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
               ),
             ),
           ),
-          if (correo.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              correo,
-              style: const TextStyle(fontSize: 13, color: Colors.white70),
-            ),
-          ],
         ],
       ),
     );
@@ -458,11 +384,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   child: const Icon(Icons.event, color: Colors.white),
                 ),
                 title: Text(
-                  e['nombre'] ?? '',
+                  e.nombre,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  '${e['direccion'] ?? ''} · ${e['estado'] ?? ''}',
+                  '${e.direccion} · ${e.estado}',
                   style: const TextStyle(color: Colors.grey),
                 ),
               ),

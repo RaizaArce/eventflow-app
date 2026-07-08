@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../dashboard/home_shell.dart';
+import 'register_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -12,57 +15,41 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final correoCtrl = TextEditingController();
   final passCtrl = TextEditingController();
-  final api = ApiClient();
 
-  bool cargando = false;
-  String mensajeError = '';
+  @override
+  void dispose() {
+    correoCtrl.dispose();
+    passCtrl.dispose();
+    super.dispose();
+  }
 
   void iniciarSesion() async {
-    setState(() {
-      cargando = true;
-      mensajeError = '';
-    });
+    final auth = context.read<AuthProvider>();
+    final exito = await auth.login(correoCtrl.text.trim(), passCtrl.text);
 
-    try {
-      final data = await api.login(correoCtrl.text.trim(), passCtrl.text);
+    if (!mounted) return;
 
-      // Guardar el token y datos del usuario localmente
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
-      await prefs.setString('nombre', data['nombre']);
-      await prefs.setString('rol', data['rol']);
-
-      // Configurar el token para futuras peticiones
-      api.setToken(data['token']);
-
-      if (mounted) {
-        Navigator.of( context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeShell()),
-        );
-      }
-
-      // Aquí luego navegaremos al Dashboard
-    } catch (e) {
-      setState(() {
-        mensajeError = 'Correo o contraseña incorrectos';
-      });
-    } finally {
-      setState(() {
-        cargando = false;
-      });
+    if (exito) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeShell()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final themeProv = context.watch<ThemeProvider>();
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 48),
               Icon(Icons.event_available, size: 80, color: Colors.green.shade700),
               const SizedBox(height: 16),
               Text(
@@ -103,14 +90,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              if (mensajeError.isNotEmpty)
-                Text(mensajeError, style: const TextStyle(color: Colors.red)),
+              if (auth.error != null)
+                Text(auth.error!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: cargando ? null : iniciarSesion,
+                  onPressed: auth.cargando ? null : iniciarSesion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green.shade700,
                     foregroundColor: Colors.white,
@@ -118,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: cargando
+                  child: auth.cargando
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           'Iniciar Sesión',
@@ -126,9 +113,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                 ),
               ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  );
+                },
+                child: Text(
+                  '¿No tienes cuenta? Crear una',
+                  style: TextStyle(color: Colors.green.shade700),
+                ),
+              ),
+              const SizedBox(height: 8),
+              IconButton(
+                icon: Icon(
+                  themeProv.esOscuro ? Icons.light_mode : Icons.dark_mode,
+                  color: Colors.grey,
+                ),
+                onPressed: () => context.read<ThemeProvider>().toggleTema(),
+                tooltip: 'Cambiar tema',
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import '../../../data/repositories/participante_repository.dart';
+import '../../../domain/models/participante.dart';
 
 class RegistrarParticipanteScreen extends StatefulWidget {
   final int eventoId;
-
-  final Map<String, dynamic>? participante;
+  final Participante? participante;
 
   const RegistrarParticipanteScreen({
     super.key,
@@ -20,8 +20,6 @@ class RegistrarParticipanteScreen extends StatefulWidget {
 }
 
 class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScreen> {
-  final api = ApiClient();
-
   final nombreController = TextEditingController();
   final dniController = TextEditingController();
   final correoController = TextEditingController();
@@ -36,10 +34,11 @@ class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScree
     super.initState();
 
     if (widget.participante != null) {
-      nombreController.text = widget.participante!['nombre'] ?? '';
-      dniController.text = widget.participante!['dni'] ?? '';
-      correoController.text = widget.participante!['correo'] ?? '';
-      telefonoController.text = widget.participante!['telefono'] ?? '';
+      final p = widget.participante!;
+      nombreController.text = p.nombre;
+      dniController.text = p.dni;
+      correoController.text = p.correo;
+      telefonoController.text = p.telefono;
     }
   }
 
@@ -52,68 +51,61 @@ class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScree
     return texto[0].toUpperCase();
   }
 
-Future<void> registrarParticipante() async {
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> registrarParticipante() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() {
-    cargando = true;
-  });
+    setState(() {
+      cargando = true;
+    });
 
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
-    api.setToken(token);
-
-    final data = {
-      'nombre': nombreController.text.trim(),
-      'dni': dniController.text.trim(),
-      'correo': correoController.text.trim(),
-      'telefono': telefonoController.text.trim(),
-    };
-
-    if (widget.participante == null) {
-      await api.dio.post(
-        '/eventos/${widget.eventoId}/participantes',
-        data: data,
+    try {
+      final repo = context.read<ParticipanteRepository>();
+      final participante = Participante(
+        nombre: nombreController.text.trim(),
+        dni: dniController.text.trim(),
+        correo: correoController.text.trim(),
+        telefono: telefonoController.text.trim(),
       );
-    } else {
-      await api.dio.put(
-        '/participantes/${widget.participante!['id']}',
-        data: data,
-      );
-    }
 
-    if (!mounted) return;
+      if (widget.participante == null) {
+        await repo.crear(widget.eventoId, participante);
+      } else {
+        await repo.actualizar(widget.participante!.id!, participante);
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
             widget.participante == null
-          ? 'Participante registrado correctamente'
-          : 'Participante actualizado correctamente',
+                ? 'Participante registrado correctamente'
+                : 'Participante actualizado correctamente',
           ),
         ),
       );
 
-    Navigator.pop(context, {
-      'success': true,
-    });
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
 
-  } catch (e) {
-  if (!mounted) return;
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        widget.participante == null
-            ? 'Error al registrar participante\n$e'
-            : 'Error al actualizar participante\n$e',
-      ),
-    ),
-  );
-}
-}
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.participante == null
+                ? 'Error al registrar participante\n$e'
+                : 'Error al actualizar participante\n$e',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          cargando = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -353,4 +345,4 @@ Future<void> registrarParticipante() async {
       ),
     );
   }
-                              }
+}

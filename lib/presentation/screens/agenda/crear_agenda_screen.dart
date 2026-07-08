@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../../data/repositories/agenda_repository.dart';
+import '../../../domain/models/actividad.dart';
 
 class CrearAgendaScreen extends StatefulWidget {
   final int eventoId;
-  final Map<String, dynamic>? agenda; // null = crear, != null = editar
+  final Actividad? agenda;
 
   const CrearAgendaScreen({
     super.key,
@@ -17,7 +18,6 @@ class CrearAgendaScreen extends StatefulWidget {
 }
 
 class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
-  final api = ApiClient();
   final formKey = GlobalKey<FormState>();
 
   final tituloController = TextEditingController();
@@ -41,12 +41,12 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
     if (!esEdicion) return;
 
     final a = widget.agenda!;
-    tituloController.text = a['titulo'] ?? '';
-    descripcionController.text = a['descripcion'] ?? '';
-    responsableController.text = a['responsable'] ?? '';
+    tituloController.text = a.titulo;
+    descripcionController.text = a.descripcion;
+    responsableController.text = a.responsable;
 
-    horaInicio = DateTime.tryParse(a['hora_inicio'] ?? '');
-    horaFin = DateTime.tryParse(a['hora_fin'] ?? '');
+    horaInicio = a.horaInicio;
+    horaFin = a.horaFin;
   }
 
   @override
@@ -119,26 +119,19 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
     setState(() => guardando = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
-      final data = {
-        'titulo': tituloController.text.trim(),
-        'descripcion': descripcionController.text.trim(),
-        'hora_inicio': formatearApi(horaInicio!),
-        'hora_fin': formatearApi(horaFin!),
-        'responsable': responsableController.text.trim(),
-      };
+      final repo = context.read<AgendaRepository>();
+      final actividad = Actividad(
+        titulo: tituloController.text.trim(),
+        descripcion: descripcionController.text.trim(),
+        horaInicio: horaInicio!,
+        horaFin: horaFin!,
+        responsable: responsableController.text.trim(),
+      );
 
       if (esEdicion) {
-        final id = widget.agenda!['id'];
-        await api.dio.put('/agenda/$id', data: data);
+        await repo.actualizar(widget.agenda!.id!, actividad);
       } else {
-        await api.dio.post(
-          '/eventos/${widget.eventoId}/agenda',
-          data: data,
-        );
+        await repo.crear(widget.eventoId, actividad);
       }
 
       if (!mounted) return;
@@ -202,7 +195,6 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
                   v == null || v.isEmpty ? 'Campo obligatorio' : null,
             ),
             const SizedBox(height: 12),
-
             TextFormField(
               controller: descripcionController,
               maxLines: 3,
@@ -211,7 +203,6 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
                   v == null || v.isEmpty ? 'Campo obligatorio' : null,
             ),
             const SizedBox(height: 12),
-
             TextFormField(
               controller: responsableController,
               decoration: deco('Responsable', Icons.person),
@@ -219,7 +210,6 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
                   v == null || v.isEmpty ? 'Campo obligatorio' : null,
             ),
             const SizedBox(height: 20),
-
             InkWell(
               onTap: () => seleccionarHora(inicio: true),
               child: InputDecorator(
@@ -228,7 +218,6 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
             InkWell(
               onTap: () => seleccionarHora(inicio: false),
               child: InputDecorator(
@@ -237,7 +226,6 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
             SizedBox(
               height: 50,
               child: ElevatedButton(

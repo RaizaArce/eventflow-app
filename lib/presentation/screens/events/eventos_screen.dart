@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../providers/evento_provider.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/shimmer_loading.dart';
 import 'detalle_evento_screen.dart';
@@ -14,46 +14,24 @@ class EventosScreen extends StatefulWidget {
 }
 
 class _EventosScreenState extends State<EventosScreen> {
-  final api = ApiClient();
-  List<dynamic> eventos = [];
-  bool cargando = true;
-  String mensajeError = '';
   String filtroSeleccionado = 'Todos';
+  String busqueda = '';
 
   final filtros = ['Todos', 'Próximos', 'En curso', 'Finalizados'];
-
-  // Mapea el filtro visual al valor real que guarda el backend
-  final Map<String, String> estadoPorFiltro = {
-    'Próximos': 'Publicado',
-    'En curso': 'EnCurso',
-    'Finalizados': 'Finalizado',
-  };
+  final busquedaController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    cargarEventos();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EventoProvider>().cargarEventos();
+    });
   }
 
-  Future<void> cargarEventos() async {
-    setState(() {
-      cargando = true;
-      mensajeError = '';
-    });
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
-      final response = await api.dio.get('/eventos');
-      eventos = response.data;
-    } catch (e) {
-      mensajeError = 'No se pudieron cargar los eventos';
-    } finally {
-      setState(() {
-        cargando = false;
-      });
-    }
+  @override
+  void dispose() {
+    busquedaController.dispose();
+    super.dispose();
   }
 
   Color _chipColor(String? estado) {
@@ -71,14 +49,18 @@ class _EventosScreenState extends State<EventosScreen> {
     }
   }
 
-  List<dynamic> get eventosFiltrados {
-    if (filtroSeleccionado == 'Todos') return eventos;
-    final estadoBuscado = estadoPorFiltro[filtroSeleccionado];
-    return eventos.where((e) => e['estado'] == estadoBuscado).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final ep = context.watch<EventoProvider>();
+    final eventosFiltrados = ep.filtrarPorEstado(filtroSeleccionado);
+    final eventosMostrados = busqueda.isEmpty
+        ? eventosFiltrados
+        : eventosFiltrados
+            .where((e) =>
+                e.nombre.toLowerCase().contains(busqueda.toLowerCase()) ||
+                e.direccion.toLowerCase().contains(busqueda.toLowerCase()))
+            .toList();
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -96,6 +78,33 @@ class _EventosScreenState extends State<EventosScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: TextField(
+              controller: busquedaController,
+              onChanged: (v) => setState(() => busqueda = v),
+              decoration: InputDecoration(
+                hintText: 'Buscar eventos...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: busqueda.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          busquedaController.clear();
+                          setState(() => busqueda = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
           SizedBox(
             height: 44,
             child: ListView(
@@ -124,89 +133,113 @@ class _EventosScreenState extends State<EventosScreen> {
           const Divider(height: 1),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: cargarEventos,
-              child: cargando
+              onRefresh: () => ep.cargarEventos(),
+              child: ep.cargando
                   ? const ShimmerCardList()
-                  : mensajeError.isNotEmpty
-                  ? Center(child: Text(mensajeError, style: const TextStyle(color: Colors.red)))
-                  : eventosFiltrados.isEmpty
-                  ? const EmptyStateWidget(
-                      icono: Icons.event_busy,
-                      mensaje: 'No hay eventos en esta categoría',
-                      subtitulo: 'Prueba cambiando el filtro o crea un nuevo evento',
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      itemCount: eventosFiltrados.length,
-                      itemBuilder: (context, index) {
-                        final e = eventosFiltrados[index];
-                        final eventoId = int.parse(e['id'].toString());
-                        return Hero(
-                          tag: 'evento_$eventoId',
-                          child: Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            elevation: 1,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(14),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(14),
-                                onTap: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => DetalleEventoScreen(
-                                        eventoId: eventoId,
+                  : ep.error != null
+                      ? Center(
+                          child: Text(ep.error!,
+                              style: const TextStyle(color: Colors.red)))
+                      : eventosMostrados.isEmpty
+                          ? EmptyStateWidget(
+                              icono: busqueda.isNotEmpty
+                                  ? Icons.search_off
+                                  : Icons.event_busy,
+                              mensaje: busqueda.isNotEmpty
+                                  ? 'No se encontraron eventos'
+                                  : 'No hay eventos en esta categoría',
+                              subtitulo: busqueda.isNotEmpty
+                                  ? 'Prueba con otro término de búsqueda'
+                                  : 'Prueba cambiando el filtro o crea un nuevo evento',
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              itemCount: eventosMostrados.length,
+                              itemBuilder: (context, index) {
+                                final e = eventosMostrados[index];
+                                return Hero(
+                                  tag: 'evento_${e.id}',
+                                  child: Card(
+                                    margin:
+                                        const EdgeInsets.only(bottom: 12),
+                                    elevation: 1,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(14),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      borderRadius:
+                                          BorderRadius.circular(14),
+                                      child: InkWell(
+                                        borderRadius:
+                                            BorderRadius.circular(14),
+                                        onTap: () async {
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  DetalleEventoScreen(
+                                                eventoId: e.id!,
+                                              ),
+                                            ),
+                                          );
+                                          if (context.mounted) {
+                                            context
+                                                .read<EventoProvider>()
+                                                .cargarEventos();
+                                          }
+                                        },
+                                        child: ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          leading: CircleAvatar(
+                                            backgroundColor:
+                                                Colors.green.shade700,
+                                            child: const Icon(Icons.event,
+                                                color: Colors.white),
+                                          ),
+                                          title: Text(
+                                            e.nombre,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            e.direccion,
+                                            style: const TextStyle(
+                                                color: Colors.grey),
+                                          ),
+                                          trailing: Chip(
+                                            label: Text(
+                                              e.estado,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            backgroundColor:
+                                                _chipColor(e.estado),
+                                            padding: EdgeInsets.zero,
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  );
-
-                                  cargarEventos();
-                                },
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
                                   ),
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.green.shade700,
-                                    child: const Icon(Icons.event, color: Colors.white),
-                                  ),
-                                  title: Text(
-                                    e['nombre'] ?? '',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    '${e['direccion'] ?? ''}',
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                  trailing: Chip(
-                                    label: Text(
-                                      e['estado'] ?? '',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    backgroundColor: _chipColor(e['estado']),
-                                    padding: EdgeInsets.zero,
-                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                          ),
-                        );
-                      },
-                    ),
             ),
           ),
         ],
@@ -220,8 +253,8 @@ class _EventosScreenState extends State<EventosScreen> {
             MaterialPageRoute(builder: (_) => const CrearEventoScreen()),
           );
 
-          if (creado == true) {
-            cargarEventos();
+          if (creado == true && context.mounted) {
+            context.read<EventoProvider>().cargarEventos();
           }
         },
         child: const Icon(Icons.add),

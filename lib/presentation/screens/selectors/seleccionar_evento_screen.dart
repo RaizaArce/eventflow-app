@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../providers/evento_provider.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/shimmer_loading.dart';
 import '../participants/participantes_screen.dart';
@@ -17,36 +17,19 @@ class SeleccionarEventoScreen extends StatefulWidget {
 }
 
 class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
-  final api = ApiClient();
-  List<dynamic> eventos = [];
-  bool cargando = true;
-  String mensajeError = '';
+  bool get esParticipantes => widget.destino == 'participantes';
+  bool get esAgenda => widget.destino == 'agenda';
+
+  MaterialColor get colorAcento => esParticipantes ? Colors.blue : Colors.orange;
+  IconData get iconoDestino => esParticipantes ? Icons.people : Icons.schedule;
+  String get tituloAppBar => esParticipantes ? 'Participantes' : 'Agenda';
 
   @override
   void initState() {
     super.initState();
-    cargarEventos();
-  }
-
-  Future<void> cargarEventos() async {
-    setState(() {
-      cargando = true;
-      mensajeError = '';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EventoProvider>().cargarEventos();
     });
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
-      final response = await api.dio.get('/eventos');
-      eventos = response.data;
-    } catch (e) {
-      mensajeError = 'No se pudieron cargar los eventos';
-    } finally {
-      setState(() {
-        cargando = false;
-      });
-    }
   }
 
   Color _colorEstado(String? estado) {
@@ -66,38 +49,49 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ep = context.watch<EventoProvider>();
+    final eventos = ep.eventos;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text(
-          'Selecciona un evento',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
+        title: Row(
+          children: [
+            Icon(iconoDestino, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              tituloAppBar,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: colorAcento.shade700,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: cargando
+      body: ep.cargando
           ? const ShimmerCardList()
-          : mensajeError.isNotEmpty
+          : ep.error != null
               ? Center(
                   child: Text(
-                    mensajeError,
+                    ep.error!,
                     style: const TextStyle(color: Colors.red),
                   ),
                 )
               : eventos.isEmpty
-                  ? const EmptyStateWidget(
-                      icono: Icons.event_busy,
-                      mensaje: 'No hay eventos disponibles',
-                      subtitulo: 'Crea un evento primero desde la pestaña Eventos',
+                  ? EmptyStateWidget(
+                      icono: iconoDestino,
+                      mensaje: esParticipantes
+                          ? 'No hay eventos con participantes'
+                          : 'No hay eventos con agenda',
+                      subtitulo: 'Selecciona un evento en la pestaña Eventos',
                     )
                   : RefreshIndicator(
-                      onRefresh: cargarEventos,
+                      onRefresh: () => ep.cargarEventos(),
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -106,76 +100,178 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
                         itemCount: eventos.length,
                         itemBuilder: (context, index) {
                           final e = eventos[index];
-                          final estado = e['estado']?.toString() ?? '';
+                          final tieneInfo = esParticipantes
+                              ? e.cantidadParticipantes
+                              : e.cantidadActividades;
+                          final previewLabel = esParticipantes
+                              ? '${e.cantidadParticipantes ?? 0} participantes'
+                              : '${e.cantidadActividades ?? 0} actividades';
 
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            elevation: 1,
-                            shape: RoundedRectangleBorder(
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: InkWell(
                               borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
                               onTap: () {
-                                final eventoId =
-                                    int.parse(e['id'].toString());
-                                if (widget.destino == 'participantes') {
+                                if (esParticipantes) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => ParticipantesScreen(
-                                        eventoId: eventoId,
+                                        eventoId: e.id!,
                                       ),
                                     ),
                                   );
-                                } else if (widget.destino == 'agenda') {
+                                } else {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => AgendaScreen(
-                                        eventoId: eventoId,
+                                        eventoId: e.id!,
                                       ),
                                     ),
                                   );
                                 }
                               },
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.green.shade700,
-                                child: const Icon(
-                                  Icons.event,
+                              child: Container(
+                                decoration: BoxDecoration(
                                   color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: colorAcento.withAlpha(25),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              title: Text(
-                                e['nombre'] ?? '',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              subtitle: Text(
-                                e['direccion'] ?? '',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              trailing: Chip(
-                                label: Text(
-                                  _labelEstado(estado),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
+                                child: IntrinsicHeight(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 5,
+                                        decoration: BoxDecoration(
+                                          color: colorAcento.shade400,
+                                          borderRadius:
+                                              const BorderRadius.horizontal(
+                                            left: Radius.circular(14),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(14),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 18,
+                                                    backgroundColor:
+                                                        colorAcento.shade50,
+                                                    child: Icon(
+                                                      iconoDestino,
+                                                      size: 18,
+                                                      color:
+                                                          colorAcento.shade700,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          e.nombre,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 15,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          e.direccion,
+                                                          style:
+                                                              const TextStyle(
+                                                            color: Colors.grey,
+                                                            fontSize: 12,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    esParticipantes
+                                                        ? Icons.people_outline
+                                                        : Icons.event_note,
+                                                    size: 16,
+                                                    color: colorAcento
+                                                        .shade300,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    tieneInfo != null
+                                                        ? previewLabel
+                                                        : 'Sin datos',
+                                                    style: TextStyle(
+                                                      color:
+                                                          colorAcento.shade400,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  const Spacer(),
+                                                  Chip(
+                                                    label: Text(
+                                                      _labelEstado(e.estado),
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    backgroundColor:
+                                                        _colorEstado(
+                                                            e.estado),
+                                                    padding:
+                                                        EdgeInsets.zero,
+                                                    materialTapTargetSize:
+                                                        MaterialTapTargetSize
+                                                            .shrinkWrap,
+                                                    visualDensity:
+                                                        VisualDensity.compact,
+                                                    labelPadding:
+                                                        const EdgeInsets
+                                                            .symmetric(
+                                                      horizontal: 6,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                backgroundColor: _colorEstado(estado),
-                                padding: EdgeInsets.zero,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
                               ),
                             ),
                           );

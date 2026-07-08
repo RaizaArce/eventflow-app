@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'data/api_client.dart';
+import 'data/repositories/auth_repository.dart';
+import 'data/repositories/evento_repository.dart';
+import 'data/repositories/participante_repository.dart';
+import 'data/repositories/agenda_repository.dart';
+import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/evento_provider.dart';
+import 'presentation/providers/theme_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 
 void main() {
@@ -11,20 +20,47 @@ class EventFlowApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final api = ApiClient();
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider(AuthRepository(api))),
+        ChangeNotifierProvider(create: (_) => EventoProvider(EventoRepository(api))),
+        Provider.value(value: ParticipanteRepository(api)),
+        Provider.value(value: AgendaRepository(api)),
+      ],
+      child: _EventFlowMaterialApp(),
+    );
+  }
+}
+
+class _EventFlowMaterialApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final themeProv = context.watch<ThemeProvider>();
+    final esOscuro = themeProv.esOscuro;
+
     final colorScheme = ColorScheme.fromSeed(
       seedColor: Colors.green.shade700,
-      brightness: Brightness.light,
+      brightness: esOscuro ? Brightness.dark : Brightness.light,
     );
+
+    final inputFillColor = esOscuro ? Colors.grey.shade800 : Colors.white;
+    final scaffoldBg = esOscuro ? Colors.grey.shade900 : Colors.grey.shade50;
+    final cardBg = esOscuro ? Colors.grey.shade800 : null;
 
     return MaterialApp(
       title: 'EventFlow',
       debugShowCheckedModeBanner: false,
+      themeMode: themeProv.themeMode,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
+        brightness: colorScheme.brightness,
 
         textTheme: GoogleFonts.poppinsTextTheme(
-          ThemeData.light().textTheme,
+          esOscuro ? ThemeData.dark().textTheme : ThemeData.light().textTheme,
         ),
 
         appBarTheme: AppBarTheme(
@@ -41,6 +77,7 @@ class EventFlowApp extends StatelessWidget {
 
         cardTheme: CardThemeData(
           elevation: 1,
+          color: cardBg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -85,7 +122,7 @@ class EventFlowApp extends StatelessWidget {
             borderSide: BorderSide(color: Colors.green.shade700, width: 2),
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: inputFillColor,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,
@@ -97,7 +134,7 @@ class EventFlowApp extends StatelessWidget {
           unselectedItemColor: Colors.grey,
           type: BottomNavigationBarType.fixed,
           elevation: 8,
-          backgroundColor: Colors.white,
+          backgroundColor: cardBg ?? Colors.white,
         ),
 
         chipTheme: ChipThemeData(
@@ -117,7 +154,7 @@ class EventFlowApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
 
-        scaffoldBackgroundColor: Colors.grey.shade50,
+        scaffoldBackgroundColor: scaffoldBg,
       ),
       home: const LoginScreen(),
     );

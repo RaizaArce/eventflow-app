@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api_client.dart';
 import 'registrar_manual_screen.dart';
 
@@ -17,7 +16,6 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
   final api = ApiClient();
   final MobileScannerController cameraController = MobileScannerController();
   bool procesando = false;
-  
 
   Map<String, dynamic>? resultadoExitoso;
   String? mensajeError;
@@ -30,10 +28,6 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
       final response = await api.dio.post(
         '/asistencias/escanear',
         data: {
@@ -120,7 +114,6 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
               ],
             ),
           ),
-
           Expanded(
             flex: 2,
             child: Container(

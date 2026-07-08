@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api_client.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/shimmer_loading.dart';
@@ -35,9 +34,6 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
 
   Future<void> cargarDatos() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      api.setToken(prefs.getString('token') ?? '');
-
       final respuestas = await Future.wait([
         api.dio.get('/eventos/${widget.eventoId}/reporte-asistencia'),
         api.dio.get('/eventos/${widget.eventoId}/participantes'),
@@ -147,7 +143,7 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
                       cardEstadistica('Ausentes', '${reporte!['ausentes']}', Icons.person_off, Colors.red),
                       const SizedBox(height: 10),
                       cardEstadistica('Porcentaje Asistencia', '${reporte!['porcentaje_asistencia']}%', Icons.analytics, Colors.orange),
-                      
+
                       const SizedBox(height: 25),
                       const Text(
                         'Listado de Control',
@@ -178,7 +174,7 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
                         ),
                       ),
                       const SizedBox(height: 15),
-                      
+
                       participantesFiltrados.isEmpty
                           ? const Padding(
                               padding: EdgeInsets.symmetric(vertical: 20.0),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../../data/repositories/agenda_repository.dart';
+import '../../../domain/models/actividad.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/shimmer_loading.dart';
 import 'crear_agenda_screen.dart';
@@ -15,9 +16,7 @@ class AgendaScreen extends StatefulWidget {
 }
 
 class _AgendaScreenState extends State<AgendaScreen> {
-  final api = ApiClient();
-
-  List<dynamic> agenda = [];
+  List<Actividad> agenda = [];
   bool cargando = true;
   String error = '';
 
@@ -34,14 +33,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
-      final response =
-          await api.dio.get('/eventos/${widget.eventoId}/agenda');
-
-      agenda = response.data;
+      final repo = context.read<AgendaRepository>();
+      agenda = await repo.listar(widget.eventoId);
     } catch (e) {
       error = 'No se pudo cargar la agenda';
     } finally {
@@ -53,12 +46,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
 
   Future<void> eliminarActividad(int id) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
-
-      await api.dio.delete('/agenda/$id');
-
+      final repo = context.read<AgendaRepository>();
+      await repo.eliminar(id);
       cargarAgenda();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -192,7 +181,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  a['titulo'] ?? '',
+                                                  a.titulo,
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 15,
@@ -239,7 +228,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                                 ],
                                                 onSelected: (value) async {
                                                   if (value == 'eliminar') {
-                                                    confirmarEliminacion(a['id']);
+                                                    confirmarEliminacion(a.id!);
                                                   }
                                                   if (value == 'editar') {
                                                     final result =
@@ -262,10 +251,10 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                               ),
                                             ],
                                           ),
-                                          if ((a['descripcion'] ?? '').isNotEmpty) ...[
+                                          if (a.descripcion.isNotEmpty) ...[
                                             const SizedBox(height: 6),
                                             Text(
-                                              a['descripcion'] ?? '',
+                                              a.descripcion,
                                               style: TextStyle(
                                                 color: Colors.grey.shade600,
                                                 fontSize: 13,
@@ -282,7 +271,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                '${formatearHora(a['hora_inicio'] ?? '')} - ${formatearHora(a['hora_fin'] ?? '')}',
+                                                '${formatearHora(a.horaInicio?.toIso8601String() ?? '')} - ${formatearHora(a.horaFin?.toIso8601String() ?? '')}',
                                                 style: TextStyle(
                                                   color: Colors.green.shade700,
                                                   fontSize: 12,
@@ -291,7 +280,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                               ),
                                             ],
                                           ),
-                                          if ((a['responsable'] ?? '').isNotEmpty) ...[
+                                          if (a.responsable.isNotEmpty) ...[
                                             const SizedBox(height: 4),
                                             Row(
                                               children: [
@@ -302,7 +291,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  a['responsable'] ?? '',
+                                                  a.responsable,
                                                   style: const TextStyle(
                                                     color: Colors.grey,
                                                     fontSize: 12,

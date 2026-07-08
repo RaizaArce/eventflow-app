@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../domain/models/participante.dart';
 
 class MostrarQrScreen extends StatelessWidget {
-  final Map<String, dynamic> participante;
+  final Participante participante;
 
   const MostrarQrScreen({super.key, required this.participante});
 
   @override
   Widget build(BuildContext context) {
-    final String qrData = participante['qr_code'] ?? 'sin_codigo';
+    final String qrData = participante.qrCode ?? 'sin_codigo';
 
     return Scaffold(
       appBar: AppBar(
@@ -31,13 +32,13 @@ class MostrarQrScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                participante['nombre'] ?? 'Participante',
+                participante.nombre,
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                'DNI: ${participante['dni'] ?? 'No registrado'}',
+                'DNI: ${participante.dni}',
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 40),

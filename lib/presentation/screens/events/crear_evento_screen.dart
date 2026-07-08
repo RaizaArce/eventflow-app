@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/api_client.dart';
+import 'package:provider/provider.dart';
+import '../../../domain/models/evento.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/evento_provider.dart';
 import '../maps/seleccionar_ubicacion_screen.dart';
 
 class CrearEventoScreen extends StatefulWidget {
-  final Map<String, dynamic>? evento;
+  final Evento? evento;
 
   const CrearEventoScreen({super.key, this.evento});
 
@@ -13,7 +15,6 @@ class CrearEventoScreen extends StatefulWidget {
 }
 
 class _CrearEventoScreenState extends State<CrearEventoScreen> {
-  final api = ApiClient();
   final formKey = GlobalKey<FormState>();
 
   final nombreController = TextEditingController();
@@ -44,21 +45,19 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
 
     final evento = widget.evento!;
 
-    nombreController.text = evento['nombre']?.toString() ?? '';
-    descripcionController.text = evento['descripcion']?.toString() ?? '';
-    direccionController.text = evento['direccion']?.toString() ?? '';
-    aforoController.text = evento['aforo']?.toString() ?? '';
+    nombreController.text = evento.nombre;
+    descripcionController.text = evento.descripcion;
+    direccionController.text = evento.direccion;
+    aforoController.text = evento.aforo.toString();
 
-    latitudController.text = evento['latitud']?.toString() ?? '-6.77';
-    longitudController.text = evento['longitud']?.toString() ?? '-79.84';
+    latitudController.text = evento.latitud.toString();
+    longitudController.text = evento.longitud.toString();
 
-    fechaInicio = DateTime.tryParse(evento['fecha_inicio']?.toString() ?? '');
-    fechaFin = DateTime.tryParse(evento['fecha_fin']?.toString() ?? '');
+    fechaInicio = evento.fechaInicio;
+    fechaFin = evento.fechaFin;
 
-    final estadoActual = evento['estado']?.toString();
-
-    if (estadoActual != null && estados.contains(estadoActual)) {
-      estadoSeleccionado = estadoActual;
+    if (estados.contains(evento.estado)) {
+      estadoSeleccionado = evento.estado;
     }
   }
 
@@ -79,13 +78,11 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
 
   String formatearFechaVisual(DateTime? fecha) {
     if (fecha == null) return 'Seleccionar fecha y hora';
-
     final dia = dosDigitos(fecha.day);
     final mes = dosDigitos(fecha.month);
     final anio = fecha.year;
     final hora = dosDigitos(fecha.hour);
     final minuto = dosDigitos(fecha.minute);
-
     return '$dia/$mes/$anio $hora:$minuto';
   }
 
@@ -96,7 +93,6 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     final hora = dosDigitos(fecha.hour);
     final minuto = dosDigitos(fecha.minute);
     final segundo = dosDigitos(fecha.second);
-
     return '$anio-$mes-$dia'
         'T'
         '$hora:$minuto:$segundo';
@@ -134,7 +130,6 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     setState(() {
       if (esInicio) {
         fechaInicio = fechaCompleta;
-
         if (fechaFin == null || fechaFin!.isBefore(fechaCompleta)) {
           fechaFin = fechaCompleta.add(const Duration(hours: 1));
         }
@@ -164,26 +159,40 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     return null;
   }
 
+  void _mostrarSnackbar(String mensaje, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              color == Colors.green ? Icons.check_circle : Icons.error,
+              color: Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(mensaje),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   Future<void> guardarEvento() async {
     if (!formKey.currentState!.validate()) return;
 
     if (fechaInicio == null || fechaFin == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecciona la fecha de inicio y fin del evento'),
-        ),
-      );
+      _mostrarSnackbar('Selecciona la fecha de inicio y fin del evento', Colors.orange);
       return;
     }
 
     if (fechaFin!.isBefore(fechaInicio!) ||
         fechaFin!.isAtSameMomentAs(fechaInicio!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'La fecha de fin debe ser posterior a la fecha de inicio',
-          ),
-        ),
+      _mostrarSnackbar(
+        'La fecha de fin debe ser posterior a la fecha de inicio',
+        Colors.orange,
       );
       return;
     }
@@ -193,79 +202,74 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     final longitud = double.tryParse(longitudController.text.trim());
 
     if (aforo == null || aforo <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Ingresa un aforo válido')));
+      _mostrarSnackbar('Ingresa un aforo válido', Colors.orange);
       return;
     }
 
     if (latitud == null || longitud == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa coordenadas válidas')),
-      );
+      _mostrarSnackbar('Ingresa coordenadas válidas', Colors.orange);
       return;
     }
 
-    setState(() {
-      guardando = true;
-    });
+    setState(() => guardando = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      api.setToken(token);
+      final organizadorId = await context.read<AuthProvider>().getUserId();
+      if (organizadorId == null) {
+        _mostrarSnackbar('Error al obtener datos del usuario', Colors.red);
+        return;
+      }
 
-      final data = {
-        'organizador_id': 1,
-        'nombre': nombreController.text.trim(),
-        'descripcion': descripcionController.text.trim(),
-        'fecha_inicio': formatearFechaApi(fechaInicio!),
-        'fecha_fin': formatearFechaApi(fechaFin!),
-        'direccion': direccionController.text.trim(),
-        'latitud': latitud,
-        'longitud': longitud,
-        'aforo': aforo,
-        'estado': estadoSeleccionado,
-      };
+      final evento = Evento(
+        organizadorId: organizadorId,
+        nombre: nombreController.text.trim(),
+        descripcion: descripcionController.text.trim(),
+        fechaInicio: fechaInicio!,
+        fechaFin: fechaFin!,
+        direccion: direccionController.text.trim(),
+        latitud: latitud,
+        longitud: longitud,
+        aforo: aforo,
+        estado: estadoSeleccionado,
+      );
+
+      final ep = context.read<EventoProvider>();
+      bool exito;
 
       if (esEdicion) {
-        final id = widget.evento!['id'];
-        await api.dio.put('/eventos/$id', data: data);
+        exito = await ep.actualizarEvento(widget.evento!.id!, evento);
       } else {
-        await api.dio.post('/eventos', data: data);
+        exito = await ep.crearEvento(evento);
       }
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            esEdicion
-                ? 'Evento actualizado correctamente'
-                : 'Evento creado correctamente',
-          ),
-        ),
-      );
-
-      Navigator.pop(context, true);
+      if (exito) {
+        _mostrarSnackbar(
+          esEdicion
+              ? 'Evento actualizado correctamente'
+              : 'Evento creado correctamente',
+          Colors.green,
+        );
+        Navigator.pop(context, true);
+      } else {
+        _mostrarSnackbar(
+          esEdicion
+              ? 'No se pudo actualizar el evento'
+              : 'No se pudo crear el evento',
+          Colors.red,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            esEdicion
-                ? 'No se pudo actualizar el evento'
-                : 'No se pudo crear el evento',
-          ),
-        ),
+      _mostrarSnackbar(
+        esEdicion
+            ? 'No se pudo actualizar el evento'
+            : 'No se pudo crear el evento',
+        Colors.red,
       );
     } finally {
-      if (mounted) {
-        setState(() {
-          guardando = false;
-        });
-      }
+      if (mounted) setState(() => guardando = false);
     }
   }
 
@@ -288,7 +292,7 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
 
   Widget construirSelectorEstado() {
     return DropdownButtonFormField<String>(
-      value: estadoSeleccionado,
+      initialValue: estadoSeleccionado,
       decoration: decoracionCampo(label: 'Estado', icono: Icons.flag),
       items: estados.map((estado) {
         return DropdownMenuItem<String>(value: estado, child: Text(estado));
@@ -475,12 +479,8 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
                 ),
                 icon: guardando
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                       )
                     : const Icon(Icons.save, size: 22),
                 label: Text(

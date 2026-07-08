@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api_client.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/shimmer_loading.dart';
@@ -17,7 +16,7 @@ class _RegistrarManualScreenState extends State<RegistrarManualScreen> {
   List<dynamic> participantesPendientes = [];
   bool cargando = true;
 
-@override
+  @override
   void initState() {
     super.initState();
     obtenerPendientes();
@@ -25,13 +24,10 @@ class _RegistrarManualScreenState extends State<RegistrarManualScreen> {
 
   Future<void> obtenerPendientes() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      api.setToken(prefs.getString('token') ?? '');
-      
       final response = await api.dio.get('/eventos/${widget.eventoId}/participantes');
-      
+
       setState(() {
-        participantesPendientes = response.data; 
+        participantesPendientes = response.data;
         cargando = false;
       });
     } catch (e) {
@@ -54,10 +50,10 @@ class _RegistrarManualScreenState extends State<RegistrarManualScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Asistencia grabada manualmente'), backgroundColor: Colors.green),
       );
-      obtenerPendientes(); 
+      obtenerPendientes();
     } catch (e) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error al procesar el registro'), backgroundColor: Colors.red),
       );
