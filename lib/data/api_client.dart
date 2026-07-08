@@ -15,6 +15,7 @@ class ApiClient {
 
     dio.interceptors.addAll([
       _AuthInterceptor(),
+      _ErrorInterceptor(),
       LogInterceptor(requestBody: true, responseBody: true),
     ]);
   }
@@ -29,5 +30,17 @@ class _AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
+  }
+}
+
+class _ErrorInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.response?.statusCode == 401) {
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.remove('token');
+      });
+    }
+    handler.next(err);
   }
 }

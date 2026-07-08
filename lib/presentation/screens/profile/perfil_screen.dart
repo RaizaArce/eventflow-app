@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../domain/models/evento.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/evento_provider.dart';
 import '../auth/login_screen.dart';
@@ -26,7 +27,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final auth = context.read<AuthProvider>();
     nombre = await auth.getUserName();
     rol = await auth.getUserRol();
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
     context.read<EventoProvider>().cargarEventos();
   }
 
@@ -55,7 +57,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
 
     if (confirmar == true) {
-      await context.read<AuthProvider>().logout();
+      final auth = context.read<AuthProvider>();
+      await auth.logout();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -332,7 +335,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  Widget _buildRecentEvents(List<dynamic> eventosRecientes) {
+  Widget _buildRecentEvents(List<Evento> eventosRecientes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -411,7 +414,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.grey.shade200),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: ListTile(
           leading: Container(

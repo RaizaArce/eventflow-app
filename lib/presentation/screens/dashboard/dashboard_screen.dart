@@ -26,7 +26,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _init() async {
     final auth = context.read<AuthProvider>();
     nombreUsuario = await auth.getUserName();
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
     context.read<EventoProvider>().cargarEventos();
   }
 
@@ -154,7 +155,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               label: const Text('Crear primer evento'),
                               onPressed: () async {
                                 final creado = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CrearEventoScreen()));
-                                if (creado == true && mounted) context.read<EventoProvider>().cargarEventos();
+                                if (!mounted) return;
+                                if (creado == true) context.read<EventoProvider>().cargarEventos();
                               },
                             ),
                           ],
@@ -175,7 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildEventCard(e) {
+  Widget _buildEventCard(dynamic e) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(

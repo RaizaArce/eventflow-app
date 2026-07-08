@@ -44,15 +44,21 @@ class _AgendaScreenState extends State<AgendaScreen> {
     }
   }
 
+  bool eliminando = false;
+
   Future<void> eliminarActividad(int id) async {
+    setState(() => eliminando = true);
     try {
       final repo = context.read<AgendaRepository>();
       await repo.eliminar(id);
       cargarAgenda();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo eliminar la actividad')),
       );
+    } finally {
+      if (mounted) setState(() => eliminando = false);
     }
   }
 

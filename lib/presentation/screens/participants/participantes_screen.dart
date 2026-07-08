@@ -76,6 +76,8 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
     });
   }
 
+  bool eliminando = false;
+
   Future<void> confirmarEliminacion(Participante participante) async {
     final confirmar = await showDialog<bool>(
       context: context,
@@ -106,6 +108,7 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
 
     if (confirmar != true) return;
 
+    setState(() => eliminando = true);
     try {
       final repo = context.read<ParticipanteRepository>();
       await repo.eliminar(participante.id!);
@@ -127,6 +130,8 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
           content: Text('Error al eliminar participante\n$e'),
         ),
       );
+    } finally {
+      if (mounted) setState(() => eliminando = false);
     }
   }
 

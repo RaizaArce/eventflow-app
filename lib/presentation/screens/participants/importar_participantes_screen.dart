@@ -207,7 +207,7 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              Navigator.pop(context, true);
+              Future.microtask(() => Navigator.pop(context, true));
             },
             child: const Text('Aceptar'),
           ),

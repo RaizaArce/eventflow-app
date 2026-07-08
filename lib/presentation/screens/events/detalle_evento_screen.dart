@@ -56,7 +56,8 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
 
     if (confirmar != true) return;
 
-    final exito = await context.read<EventoProvider>().eliminarEvento(
+    final ep = context.read<EventoProvider>();
+    final exito = await ep.eliminarEvento(
       widget.eventoId,
     );
 
@@ -246,7 +247,8 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                         builder: (_) => CrearEventoScreen(evento: evento),
                       ),
                     );
-                    if (actualizado == true && mounted) {
+                    if (!mounted) return;
+                    if (actualizado == true) {
                       context.read<EventoProvider>().cargarDetalle(
                         widget.eventoId,
                       );
