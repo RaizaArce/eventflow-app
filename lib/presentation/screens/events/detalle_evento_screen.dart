@@ -166,7 +166,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icono, color: Colors.green.shade700),
+          Icon(icono, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -174,13 +174,13 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
               children: [
                 Text(
                   titulo,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(valor, style: const TextStyle(color: Colors.black87), maxLines: 3, overflow: TextOverflow.ellipsis),
+                Text(valor, style: TextStyle(color: Theme.of(context).colorScheme.onSurface), maxLines: 3, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -220,7 +220,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
     final error = ep.error;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Detalle del evento',
@@ -403,9 +403,9 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                                     const SizedBox(height: 8),
                                     Chip(
                                       label: Text(evento.estado),
-                                      backgroundColor: Colors.green.shade50,
+                                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                                       labelStyle: TextStyle(
-                                        color: Colors.green.shade700,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),

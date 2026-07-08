@@ -169,7 +169,7 @@ class _CrearAgendaScreenState extends State<CrearAgendaScreen> {
     final titulo = esEdicion ? 'Editar actividad' : 'Crear actividad';
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: Text(
           titulo,

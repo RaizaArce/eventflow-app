@@ -62,7 +62,7 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Escanear QR de Entrada',
@@ -118,7 +118,7 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
             flex: 2,
             child: Container(
               padding: const EdgeInsets.all(16),
-              color: Colors.grey[100],
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -176,7 +176,7 @@ class _EscanearAsistenciaScreenState extends State<EscanearAsistenciaScreen> {
                       child: const Text('Reintentar Escaneo'),
                     )
                   ] else
-                    const Text('Apunta al código QR de la credencial', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                      Text('Apunta al código QR de la credencial', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
 
                   const Spacer(),
                   OutlinedButton.icon(

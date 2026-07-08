@@ -95,7 +95,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Agenda del evento',
@@ -139,16 +139,16 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                       Container(
                                         width: 2,
                                         height: index == 0 ? 12 : 0,
-                                        color: Colors.green.shade200,
+                                        color: Theme.of(context).colorScheme.primaryContainer,
                                       ),
                                       Container(
                                         width: 14,
                                         height: 14,
                                         decoration: BoxDecoration(
-                                          color: Colors.green.shade700,
+                                          color: Theme.of(context).colorScheme.primary,
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: Colors.white,
+                                            color: Theme.of(context).colorScheme.surface,
                                             width: 2,
                                           ),
                                         ),
@@ -159,7 +159,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                           width: 2,
                                           color: isLast
                                               ? Colors.transparent
-                                              : Colors.green.shade200,
+                                              : Theme.of(context).colorScheme.primaryContainer,
                                         ),
                                       ),
                                     ],
@@ -182,20 +182,20 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                               Expanded(
                                                 child: Text(
                                                   a.titulo,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
-                                                    color: Colors.black87,
-                                                  ),
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                      color: Theme.of(context).colorScheme.onSurface,
+                                                    ),
                                                   maxLines: 2,
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               PopupMenuButton(
-                                                icon: const Icon(
+                                                icon: Icon(
                                                   Icons.more_vert,
                                                   size: 18,
-                                                  color: Colors.grey,
+                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                                 ),
                                                 itemBuilder: (context) => [
                                                   const PopupMenuItem(
@@ -208,22 +208,13 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                                       ],
                                                     ),
                                                   ),
-                                                  const PopupMenuItem(
+                                                  PopupMenuItem(
                                                     value: 'eliminar',
                                                     child: Row(
                                                       children: [
-                                                        Icon(
-                                                          Icons.delete,
-                                                          size: 18,
-                                                          color: Colors.red,
-                                                        ),
-                                                        SizedBox(width: 8),
-                                                        Text(
-                                                          'Eliminar',
-                                                          style: TextStyle(
-                                                            color: Colors.red,
-                                                          ),
-                                                        ),
+                                                        const Icon(Icons.delete, size: 18, color: Colors.red),
+                                                        const SizedBox(width: 8),
+                                                        const Text('Eliminar', style: TextStyle(color: Colors.red)),
                                                       ],
                                                     ),
                                                   ),
@@ -258,7 +249,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                             Text(
                                               a.descripcion,
                                               style: TextStyle(
-                                                color: Colors.grey.shade600,
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                                                 fontSize: 13,
                                               ),
                                               maxLines: 3,
@@ -268,16 +259,16 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                           const SizedBox(height: 8),
                                           Row(
                                             children: [
-                                              Icon(
-                                                Icons.access_time,
-                                                size: 14,
-                                                color: Colors.green.shade700,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                '${formatearHora(a.horaInicio?.toIso8601String() ?? '')} - ${formatearHora(a.horaFin?.toIso8601String() ?? '')}',
-                                                style: TextStyle(
-                                                  color: Colors.green.shade700,
+                                                Icon(
+                                                  Icons.access_time,
+                                                  size: 14,
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '${formatearHora(a.horaInicio?.toIso8601String() ?? '')} - ${formatearHora(a.horaFin?.toIso8601String() ?? '')}',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.primary,
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -288,19 +279,19 @@ class _AgendaScreenState extends State<AgendaScreen> {
                                             const SizedBox(height: 4),
                                             Row(
                                               children: [
-                                                Icon(
-                                                  Icons.person,
-                                                  size: 14,
-                                                  color: Colors.grey,
-                                                ),
+                                                  Icon(
+                                                    Icons.person,
+                                                    size: 14,
+                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                  ),
                                                 const SizedBox(width: 4),
                                             Flexible(
-                                              child: Text(
-                                                a.responsable,
-                                                style: const TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 12,
-                                                ),
+                                                child: Text(
+                                                  a.responsable,
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                    fontSize: 12,
+                                                  ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -320,7 +311,6 @@ class _AgendaScreenState extends State<AgendaScreen> {
                       ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green.shade700,
         onPressed: () async {
           final result = await Navigator.push(
             context,

@@ -31,8 +31,6 @@ class _HomeShellState extends State<HomeShell> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: indiceActual,
-        selectedItemColor: Colors.green.shade700,
-        unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
           setState(() => indiceActual = index);

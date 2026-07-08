@@ -63,7 +63,7 @@ class _RegistrarManualScreenState extends State<RegistrarManualScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Registro Manual',
@@ -113,7 +113,7 @@ class _RegistrarManualScreenState extends State<RegistrarManualScreen> {
                         ),
                         subtitle: Text(
                           'DNI: ${p['dni'] ?? ''}',
-                          style: const TextStyle(color: Colors.grey),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

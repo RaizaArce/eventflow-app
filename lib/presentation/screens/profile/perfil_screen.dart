@@ -87,7 +87,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final eventosRecientes = eventos.length > 3 ? eventos.sublist(0, 3) : eventos;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       body: RefreshIndicator(
         onRefresh: () => context.read<EventoProvider>().cargarEventos(),
         child: ListView(
@@ -250,14 +250,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
           child: Row(
             children: [
-              Icon(Icons.person, size: 20, color: Colors.green.shade700),
+              Icon(Icons.person, size: 20, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(
                 'Mis eventos',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -288,7 +288,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Widget _statCard(IconData icon, String numero, String label, Color color) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -323,7 +323,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
             label,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -340,14 +340,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
           child: Row(
             children: [
-              Icon(Icons.history, size: 20, color: Colors.grey.shade700),
+              Icon(Icons.history, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(width: 8),
               Text(
                 'Mis eventos recientes',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -393,7 +393,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 ),
                 subtitle: Text(
                   '${e.direccion} · ${e.estado}',
-                  style: const TextStyle(color: Colors.grey),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

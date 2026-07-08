@@ -100,7 +100,7 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(titulo, style: const TextStyle(fontSize: 14, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(titulo, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Text(valor, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
@@ -115,7 +115,7 @@ class _ReporteAsistenciaScreenState extends State<ReporteAsistenciaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Métricas de Asistencia',

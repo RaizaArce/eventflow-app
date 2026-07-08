@@ -61,11 +61,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Gestiona tus eventos de forma\nsimple y efectiva',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
+                Text(
+                  'Gestiona tus eventos de forma\nsimple y efectiva',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
               const SizedBox(height: 32),
               TextField(
                 controller: correoCtrl,
@@ -130,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
               IconButton(
                 icon: Icon(
                   themeProv.esOscuro ? Icons.light_mode : Icons.dark_mode,
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 onPressed: () => context.read<ThemeProvider>().toggleTema(),
                 tooltip: 'Cambiar tema',

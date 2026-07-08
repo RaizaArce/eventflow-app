@@ -133,7 +133,7 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Participantes',
@@ -170,8 +170,6 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
           const SizedBox(height: 12),
           FloatingActionButton.extended(
             heroTag: 'registrar',
-            backgroundColor: Colors.green.shade700,
-            foregroundColor: Colors.white,
             icon: const Icon(Icons.person_add),
             label: const Text('Registrar'),
             onPressed: () async {
@@ -217,7 +215,7 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               filled: true,
-                              fillColor: Colors.white,
+                              fillColor: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
                             ),
                           ),
                         ),
@@ -253,11 +251,11 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
                                         children: [
                                           CircleAvatar(
                                             radius: 28,
-                                            backgroundColor: Colors.green.shade700,
+                                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                                             child: Text(
                                               iniciales.isNotEmpty ? iniciales : '?',
-                                              style: const TextStyle(
-                                                color: Colors.white,
+                                              style: TextStyle(
+                                                color: Theme.of(context).colorScheme.onPrimaryContainer,
                                                 fontSize: 20,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -269,19 +267,19 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
                                             textAlign: TextAlign.center,
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                              color: Colors.black87,
-                                            ),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
                                             'DNI: ${p.dni}',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey,
-                                            ),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                          ),
                                           ),
                                         ],
                                       ),

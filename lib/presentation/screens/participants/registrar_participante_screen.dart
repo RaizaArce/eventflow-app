@@ -113,7 +113,7 @@ class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScree
     final nombre = nombreController.text;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: Text(
           esEdicion ? 'Editar participante' : 'Registrar participante',
@@ -153,10 +153,10 @@ class _RegistrarParticipanteScreenState extends State<RegistrarParticipanteScree
                     const SizedBox(height: 10),
                     Text(
                       nombre,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

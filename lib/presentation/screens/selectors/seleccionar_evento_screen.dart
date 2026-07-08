@@ -76,7 +76,7 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
     final eventos = ep.eventos;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: Row(
           children: [
@@ -200,13 +200,13 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
                                                         Text(
                                                           e.nombre,
                                                           style:
-                                                              const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 15,
-                                                            color:
-                                                                Colors.black87,
-                                                          ),
+                                                            TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight.bold,
+                                                              fontSize: 15,
+                                                              color:
+                                                                  Theme.of(context).colorScheme.onSurface,
+                                                            ),
                                                           maxLines: 1,
                                                           overflow:
                                                               TextOverflow
@@ -215,10 +215,10 @@ class _SeleccionarEventoScreenState extends State<SeleccionarEventoScreen> {
                                                         Text(
                                                           e.direccion,
                                                           style:
-                                                              const TextStyle(
-                                                            color: Colors.grey,
-                                                            fontSize: 12,
-                                                          ),
+                                                              TextStyle(
+                                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                                fontSize: 12,
+                                                              ),
                                                           maxLines: 1,
                                                           overflow:
                                                               TextOverflow

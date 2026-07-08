@@ -83,7 +83,7 @@ class _EventosScreenState extends State<EventosScreen> {
             .toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text(
           'Eventos',
@@ -117,7 +117,7 @@ class _EventosScreenState extends State<EventosScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -138,10 +138,10 @@ class _EventosScreenState extends State<EventosScreen> {
                   child: ChoiceChip(
                     label: Text(f),
                     selected: seleccionado,
-                    selectedColor: Colors.green.shade700,
-                    backgroundColor: Colors.grey.shade100,
+                    selectedColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     labelStyle: TextStyle(
-                      color: seleccionado ? Colors.white : Colors.black87,
+                      color: seleccionado ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
                     ),
                     onSelected: (_) {
                       setState(() => filtroSeleccionado = f);
@@ -221,17 +221,17 @@ class _EventosScreenState extends State<EventosScreen> {
                                           leading: _avatarEvento(e.imagenUrl),
                                           title: Text(
                                             e.nombre,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
-                                            ),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           subtitle: Text(
                                             e.direccion,
-                                            style: const TextStyle(
-                                                color: Colors.grey),
+                                            style: TextStyle(
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),

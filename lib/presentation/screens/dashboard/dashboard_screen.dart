@@ -40,7 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final eventosRecientes = ep.eventosRecientes.take(5).toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      //
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: recargar,
@@ -64,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const Text('Organizador', style: TextStyle(color: Colors.grey)),
+                          Text('Organizador', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ],
                       ),
                     ),
@@ -188,7 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           height: 160,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
             boxShadow: [BoxShadow(color: Colors.black.withAlpha(13), blurRadius: 8, offset: const Offset(0, 2))],
           ),
           clipBehavior: Clip.antiAlias,
@@ -209,19 +209,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       Text(
                         e.nombre,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
+                          Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               e.direccion,
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -235,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const Spacer(),
                           Text(
                             _fecha(e.fechaInicio),
-                            style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11),
                           ),
                         ],
                       ),
@@ -336,7 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Material(
-          color: Colors.white,
+          color: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),

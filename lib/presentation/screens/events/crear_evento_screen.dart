@@ -307,7 +307,7 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
         decoration: decoracionCampo(label: titulo, icono: Icons.calendar_today),
         child: Text(
           formatearFechaVisual(fecha),
-          style: TextStyle(color: fecha == null ? Colors.grey : Colors.black87),
+          style: TextStyle(color: fecha == null ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).colorScheme.onSurface),
         ),
       ),
     );
@@ -335,7 +335,7 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
     final textoBoton = esEdicion ? 'Guardar cambios' : 'Crear evento';
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: Text(
           tituloPantalla,

@@ -41,13 +41,13 @@ class MostrarQrScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'DNI: ${participante.dni}',
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -64,10 +64,10 @@ class MostrarQrScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              const Text(
+              Text(
                 'Muestre este código en el ingreso para registrar su asistencia.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.black54, fontStyle: FontStyle.italic),
+                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant, fontStyle: FontStyle.italic),
               ),
             ],
           ),

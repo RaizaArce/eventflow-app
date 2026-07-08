@@ -219,7 +219,7 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      //
       appBar: AppBar(
         title: const Text('Importar participantes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white)),
         backgroundColor: Colors.green.shade700,
@@ -259,12 +259,12 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                           child: Row(
                             children: [
-                              const Icon(Icons.description, size: 18, color: Colors.grey),
+                              Icon(Icons.description, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(nombreArchivo, style: const TextStyle(fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
                               ),
-                              Text('${filas.length} filas', style: const TextStyle(color: Colors.grey)),
+                              Text('${filas.length} filas', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                             ],
                           ),
                         ),
@@ -313,7 +313,7 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
       ),
       child: Row(
         children: [
-          SizedBox(width: 30, child: Text('${f.numero}', style: const TextStyle(fontSize: 12, color: Colors.grey))),
+          SizedBox(width: 30, child: Text('${f.numero}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
           Expanded(
             child: Text(f.nombre, style: const TextStyle(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
