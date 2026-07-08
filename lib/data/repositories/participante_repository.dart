@@ -26,4 +26,12 @@ class ParticipanteRepository {
   Future<void> eliminar(int id) async {
     await _api.dio.delete('/participantes/$id');
   }
+
+  Future<Map<String, dynamic>> importarMasivo(int eventoId, List<Map<String, dynamic>> participantes) async {
+    final response = await _api.dio.post(
+      '/eventos/$eventoId/participantes/importar',
+      data: {'participantes': participantes},
+    );
+    return response.data;
+  }
 }

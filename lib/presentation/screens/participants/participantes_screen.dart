@@ -4,6 +4,7 @@ import '../../../data/repositories/participante_repository.dart';
 import '../../../domain/models/participante.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/shimmer_loading.dart';
+import 'importar_participantes_screen.dart';
 import 'registrar_participante_screen.dart';
 import 'mostrar_qr_screen.dart';
 
@@ -146,25 +147,49 @@ class _ParticipantesScreenState extends State<ParticipantesScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.person_add),
-        label: const Text('Registrar'),
-        onPressed: () async {
-          final registrado = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => RegistrarParticipanteScreen(
-                eventoId: widget.eventoId,
-              ),
-            ),
-          );
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'importar',
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            onPressed: () async {
+              final importado = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ImportarParticipantesScreen(
+                    eventoId: widget.eventoId,
+                  ),
+                ),
+              );
+              if (importado == true) await cargarParticipantes();
+            },
+            child: const Icon(Icons.upload_file),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'registrar',
+            backgroundColor: Colors.green.shade700,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.person_add),
+            label: const Text('Registrar'),
+            onPressed: () async {
+              final registrado = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RegistrarParticipanteScreen(
+                    eventoId: widget.eventoId,
+                  ),
+                ),
+              );
 
-          if (registrado == true) {
-            await cargarParticipantes();
-          }
-        },
+              if (registrado == true) {
+                await cargarParticipantes();
+              }
+            },
+          ),
+        ],
       ),
       body: cargando
           ? const ShimmerCardList()

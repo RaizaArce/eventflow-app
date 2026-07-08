@@ -48,6 +48,9 @@ dependencies:
   google_fonts: ^6.1.0
   shimmer: ^3.0.0
   image_picker: ^1.0.7
+  file_picker: ^8.0.0
+  csv: ^6.0.0
+  excel: ^4.0.0
 
 dev_dependencies:
   flutter_test:
