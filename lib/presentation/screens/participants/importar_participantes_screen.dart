@@ -21,6 +21,8 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
   String? error;
   String nombreArchivo = '';
 
+  String _cellValue(dynamic cell) => cell == null ? '' : cell.toString().trim();
+
   @override
   void initState() {
     super.initState();
@@ -50,20 +52,25 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
       List<List<dynamic>>? rows;
 
       if (file.name.endsWith('.csv')) {
-        final csvText = String.fromCharCodes(bytes);
-        rows = const CsvToListConverter().convert(csvText);
+        String csvText = String.fromCharCodes(bytes);
+        csvText = csvText.replaceFirst('\uFEFF', '');
+        rows = const CsvToListConverter(shouldParseNumbers: false).convert(csvText);
       } else if (file.name.endsWith('.xlsx')) {
-        final excel = Excel.decodeBytes(bytes);
-        final sheet = excel.tables.values.firstOrNull;
-        if (sheet == null) throw Exception('El archivo Excel está vacío');
-        rows = sheet.rows.map((r) => r.map((c) => c?.value ?? '').toList()).toList();
+        try {
+          final excel = Excel.decodeBytes(bytes);
+          final sheet = excel.tables.values.firstOrNull;
+          if (sheet == null) throw Exception('El archivo Excel está vacío');
+          rows = sheet.rows.map((r) => r.map((c) => c?.value ?? '').toList()).toList();
+        } on FormatException {
+          throw Exception('El archivo Excel no es válido. Asegúrate de guardarlo desde Excel real como .xlsx');
+        }
       } else {
-        throw Exception('Formato no soportado');
+        throw Exception('Formato no soportado. Usa archivos .csv o .xlsx');
       }
 
       if (rows.isEmpty) throw Exception('El archivo está vacío');
 
-      final headers = rows[0].map((h) => h.toString().trim().toLowerCase()).toList();
+      final headers = rows[0].map((h) => _cellValue(h).toLowerCase()).toList();
       final idxNombre = headers.indexWhere((h) => h == 'nombre');
       final idxDni = headers.indexWhere((h) => h == 'dni');
       final idxCorreo = headers.indexWhere((h) => h == 'correo');
@@ -76,10 +83,10 @@ class _ImportarParticipantesScreenState extends State<ImportarParticipantesScree
       final parsed = <_FilaPreview>[];
       for (var i = 1; i < rows.length; i++) {
         final row = rows[i];
-        final nombre = (idxNombre < row.length ? row[idxNombre] : '').toString().trim();
-        final dni = (idxDni < row.length ? row[idxDni] : '').toString().trim();
-        final correo = idxCorreo >= 0 && idxCorreo < row.length ? row[idxCorreo].toString().trim() : '';
-        final telefono = idxTelefono >= 0 && idxTelefono < row.length ? row[idxTelefono].toString().trim() : '';
+        final nombre = idxNombre < row.length ? _cellValue(row[idxNombre]) : '';
+        final dni = idxDni < row.length ? _cellValue(row[idxDni]) : '';
+        final correo = idxCorreo >= 0 && idxCorreo < row.length ? _cellValue(row[idxCorreo]) : '';
+        final telefono = idxTelefono >= 0 && idxTelefono < row.length ? _cellValue(row[idxTelefono]) : '';
 
         String? errorMsg;
         if (nombre.isEmpty) {
