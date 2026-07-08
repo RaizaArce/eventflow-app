@@ -3,10 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api_client.dart';
 import '../../widgets/shimmer_loading.dart';
 import 'crear_evento_screen.dart';
-import '../participants/participantes_screen.dart';
 import '../attendance/escanear_asistencia_screen.dart';
 import '../attendance/reporte_asistencia_screen.dart';
-import '../agenda/agenda_screen.dart';
 import '../maps/mapa_evento_screen.dart';
 
 class DetalleEventoScreen extends StatefulWidget {
@@ -173,28 +171,6 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
     );
   }
 
-  Widget construirBotonTemporal({
-  required IconData icono,
-  required String texto,
-  VoidCallback? onPressed,
-}) {
-  return SizedBox(
-    width: double.infinity,
-    child: OutlinedButton.icon(
-      onPressed: onPressed ??
-          () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$texto se conectará en el siguiente módulo'),
-              ),
-            );
-          },
-      icon: Icon(icono),
-      label: Text(texto),
-    ),
-  );
-}
-
   @override
   Widget build(BuildContext context) {
     final nombre = obtenerValor(['nombre']);
@@ -232,6 +208,111 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
         backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) async {
+              switch (value) {
+                case 'editar':
+                  if (evento == null) return;
+                  final actualizado = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CrearEventoScreen(evento: evento),
+                    ),
+                  );
+                  if (actualizado == true) {
+                    await cargarDetalleEvento();
+                  }
+                case 'eliminar':
+                  eliminarEvento();
+                case 'escanear':
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EscanearAsistenciaScreen(
+                        eventoId: widget.eventoId,
+                      ),
+                    ),
+                  );
+                case 'reporte':
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReporteAsistenciaScreen(
+                        eventoId: widget.eventoId,
+                      ),
+                    ),
+                  );
+                case 'mapa':
+                  if (evento == null || !mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MapaEventoScreen(
+                        latitud: double.parse(
+                          evento!['latitud'].toString(),
+                        ),
+                        longitud: double.parse(
+                          evento!['longitud'].toString(),
+                        ),
+                        nombreEvento: evento!['nombre'].toString(),
+                      ),
+                    ),
+                  );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'editar',
+                child: ListTile(
+                  leading: Icon(Icons.edit, color: Colors.green),
+                  title: Text('Editar evento'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'eliminar',
+                child: ListTile(
+                  leading: Icon(Icons.delete, color: Colors.red),
+                  title: Text('Eliminar evento', style: TextStyle(color: Colors.red)),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'escanear',
+                child: ListTile(
+                  leading: Icon(Icons.qr_code_scanner, color: Colors.blue),
+                  title: Text('Escanear asistencia'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'reporte',
+                child: ListTile(
+                  leading: Icon(Icons.analytics_outlined, color: Colors.orange),
+                  title: Text('Reporte de asistencia'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'mapa',
+                child: ListTile(
+                  leading: Icon(Icons.map, color: Colors.purple),
+                  title: Text('Ver mapa del evento'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: cargando
           ? const ShimmerDetailCard()
@@ -335,134 +416,7 @@ class _DetalleEventoScreenState extends State<DetalleEventoScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        if (evento == null) return;
-
-                        final actualizado = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CrearEventoScreen(evento: evento),
-                          ),
-                        );
-
-                        if (actualizado == true) {
-                          await cargarDetalleEvento();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: const Icon(Icons.edit),
-                      label: const Text('Editar evento'),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: eliminarEvento,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: const Icon(Icons.delete),
-                      label: const Text('Eliminar evento'),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  construirBotonTemporal(
-                    icono: Icons.group,
-                    texto: 'Ver participantes',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ParticipantesScreen(
-                            eventoId: widget.eventoId,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  const SizedBox(height: 10),
-                  construirBotonTemporal(
-                    icono: Icons.qr_code_scanner,
-                    texto: 'Escanear Asistencia',
-                    onPressed: (){
-                      Navigator.push(
-                        context,
-                          MaterialPageRoute(
-                            builder: (_) => EscanearAsistenciaScreen(
-                              eventoId: widget.eventoId,
-                            ),
-                          ),
-                        );
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  construirBotonTemporal(
-                    icono: Icons.analytics_outlined,
-                    texto: 'Reporte de Asistencias',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ReporteAsistenciaScreen( // Tu pantalla de reportes
-                            eventoId: widget.eventoId,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  construirBotonTemporal(
-                    icono: Icons.schedule,
-                    texto: 'Ver agenda',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AgendaScreen(
-                            eventoId: widget.eventoId,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  construirBotonTemporal(
-                    icono: Icons.map,
-                    texto: 'Ver mapa del evento',
-                    onPressed: () {
-                      if (evento == null) return;
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MapaEventoScreen(
-                            latitud: double.parse(
-                              evento!['latitud'].toString(),
-                            ),
-                            longitud: double.parse(
-                              evento!['longitud'].toString(),
-                            ),
-                            nombreEvento: evento!['nombre'].toString(),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

@@ -225,11 +225,10 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
         'latitud': latitud,
         'longitud': longitud,
         'aforo': aforo,
+        'estado': estadoSeleccionado,
       };
 
       if (esEdicion) {
-        data['estado'] = estadoSeleccionado;
-
         final id = widget.evento!['id'];
         await api.dio.put('/eventos/$id', data: data);
       } else {
@@ -288,32 +287,18 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
   }
 
   Widget construirSelectorEstado() {
-    if (!esEdicion) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Estado del evento',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 14),
-        DropdownButtonFormField<String>(
-          value: estadoSeleccionado,
-          decoration: decoracionCampo(label: 'Estado', icono: Icons.flag),
-          items: estados.map((estado) {
-            return DropdownMenuItem<String>(value: estado, child: Text(estado));
-          }).toList(),
-          onChanged: (valor) {
-            if (valor == null) return;
-
-            setState(() {
-              estadoSeleccionado = valor;
-            });
-          },
-        ),
-        const SizedBox(height: 20),
-      ],
+    return DropdownButtonFormField<String>(
+      value: estadoSeleccionado,
+      decoration: decoracionCampo(label: 'Estado', icono: Icons.flag),
+      items: estados.map((estado) {
+        return DropdownMenuItem<String>(value: estado, child: Text(estado));
+      }).toList(),
+      onChanged: (valor) {
+        if (valor == null) return;
+        setState(() {
+          estadoSeleccionado = valor;
+        });
+      },
     );
   }
 
@@ -340,166 +325,218 @@ class _CrearEventoScreenState extends State<CrearEventoScreen> {
       body: Form(
         key: formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            const Text(
-              'Información del evento',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            _buildSectionCard(
+              icon: Icons.info_outline,
+              titulo: 'Información del evento',
+              children: [
+                TextFormField(
+                  controller: nombreController,
+                  decoration: decoracionCampo(
+                    label: 'Nombre del evento',
+                    icono: Icons.event,
+                  ),
+                  validator: validarCampoObligatorio,
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: descripcionController,
+                  maxLines: 3,
+                  decoration: decoracionCampo(
+                    label: 'Descripción',
+                    icono: Icons.description,
+                  ),
+                  validator: validarCampoObligatorio,
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: direccionController,
+                  decoration: decoracionCampo(
+                    label: 'Dirección',
+                    icono: Icons.location_on,
+                  ),
+                  validator: validarCampoObligatorio,
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: aforoController,
+                  keyboardType: TextInputType.number,
+                  decoration: decoracionCampo(label: 'Aforo', icono: Icons.people),
+                  validator: validarCampoObligatorio,
+                ),
+                const SizedBox(height: 14),
+                construirSelectorEstado(),
+              ],
             ),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: nombreController,
-              decoration: decoracionCampo(
-                label: 'Nombre del evento',
-                icono: Icons.event,
-              ),
-              validator: validarCampoObligatorio,
-            ),
-            const SizedBox(height: 14),
-
-            TextFormField(
-              controller: descripcionController,
-              maxLines: 3,
-              decoration: decoracionCampo(
-                label: 'Descripción',
-                icono: Icons.description,
-              ),
-              validator: validarCampoObligatorio,
-            ),
-            const SizedBox(height: 14),
-
-            TextFormField(
-              controller: direccionController,
-              decoration: decoracionCampo(
-                label: 'Dirección',
-                icono: Icons.location_on,
-              ),
-              validator: validarCampoObligatorio,
-            ),
-            const SizedBox(height: 14),
-
-            TextFormField(
-              controller: aforoController,
-              keyboardType: TextInputType.number,
-              decoration: decoracionCampo(label: 'Aforo', icono: Icons.people),
-              validator: validarCampoObligatorio,
-            ),
-            const SizedBox(height: 20),
-
-            construirSelectorEstado(),
-
-            const Text(
-              'Fecha y hora',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 14),
-
-            construirSelectorFecha(
-              titulo: 'Fecha de inicio',
-              fecha: fechaInicio,
-              esInicio: true,
-            ),
-            const SizedBox(height: 14),
-
-            construirSelectorFecha(
-              titulo: 'Fecha de fin',
-              fecha: fechaFin,
-              esInicio: false,
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Ubicación del evento',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
             const SizedBox(height: 12),
-
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.map),
-                label: const Text("Seleccionar ubicación"),
-                onPressed: () async {
-
-                  final latActual =
-                      double.tryParse(latitudController.text) ?? -6.7714;
-
-                  final lngActual =
-                      double.tryParse(longitudController.text) ?? -79.8409;
-
-
-                  final resultado = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SeleccionarUbicacionScreen(
-                        latitudInicial: latActual,
-                        longitudInicial: lngActual,
+            _buildSectionCard(
+              icon: Icons.calendar_month,
+              titulo: 'Fecha y hora',
+              children: [
+                construirSelectorFecha(
+                  titulo: 'Fecha de inicio',
+                  fecha: fechaInicio,
+                  esInicio: true,
+                ),
+                const SizedBox(height: 14),
+                construirSelectorFecha(
+                  titulo: 'Fecha de fin',
+                  fecha: fechaFin,
+                  esInicio: false,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildSectionCard(
+              icon: Icons.map_outlined,
+              titulo: 'Ubicación del evento',
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.map),
+                    label: const Text("Seleccionar ubicación"),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.green.shade700,
+                      side: BorderSide(color: Colors.green.shade700),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                  );
+                    onPressed: () async {
+                      final latActual =
+                          double.tryParse(latitudController.text) ?? -6.7714;
+                      final lngActual =
+                          double.tryParse(longitudController.text) ?? -79.8409;
 
+                      final resultado = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SeleccionarUbicacionScreen(
+                            latitudInicial: latActual,
+                            longitudInicial: lngActual,
+                          ),
+                        ),
+                      );
 
-                  if (resultado != null) {
-
-                    setState(() {
-
-                      latitudController.text =
-                          resultado['lat'].toString();
-
-                      longitudController.text =
-                          resultado['lng'].toString();
-
-                    });
-
-                  }
-
-                },
-              ),
+                      if (resultado != null) {
+                        setState(() {
+                          latitudController.text =
+                              resultado['lat'].toString();
+                          longitudController.text =
+                              resultado['lng'].toString();
+                        });
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Lat: ${latitudController.text}  ·  Lng: ${longitudController.text}",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade700,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 12),
-
-            Text(
-              "Latitud: ${latitudController.text}",
-            ),
-
-            const SizedBox(height: 6),
-
-            Text(
-              "Longitud: ${longitudController.text}",
-            ),
-            const SizedBox(height: 24),
-
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 52,
               child: ElevatedButton.icon(
                 onPressed: guardando ? null : guardarEvento,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade700,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 2,
+                  shadowColor: Colors.green.shade200,
                 ),
                 icon: guardando
                     ? const SizedBox(
-                        width: 18,
-                        height: 18,
+                        width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: 2.5,
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.save),
-                label: Text(guardando ? 'Guardando...' : textoBoton),
+                    : const Icon(Icons.save, size: 22),
+                label: Text(
+                  guardando ? 'Guardando...' : textoBoton,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required IconData icon,
+    required String titulo,
+    required List<Widget> children,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 18, color: Colors.green.shade700),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...children,
           ],
         ),
       ),
