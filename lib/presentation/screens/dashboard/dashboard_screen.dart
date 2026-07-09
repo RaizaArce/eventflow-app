@@ -6,6 +6,7 @@ import '../../providers/evento_provider.dart';
 import '../events/eventos_screen.dart';
 import '../events/crear_evento_screen.dart';
 import '../events/detalle_evento_screen.dart';
+import '../events/escanear_evento_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -322,12 +323,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }),
         _actionChip(Icons.calendar_month, 'Eventos', Colors.blue, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventosScreen()))),
         _actionChip(Icons.qr_code_scanner, 'Escanear', Colors.teal, () {
-          final eventos = context.read<EventoProvider>().eventos;
-          if (eventos.isEmpty) {
-            _mostrarSnackbar('Primero crea un evento', Colors.orange);
-            return;
-          }
-          Navigator.push(context, MaterialPageRoute(builder: (_) => DetalleEventoScreen(eventoId: eventos.first.id!)));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EscanearEventoScreen()),
+          );
         }),
       ],
     );
