@@ -5,52 +5,102 @@ class PlaceSuggestion {
   final String description;
   final LatLng location;
 
-  PlaceSuggestion({required this.description, required this.location});
+  PlaceSuggestion({
+    required this.description,
+    required this.location,
+  });
 }
 
 class GooglePlacesService {
-  final Dio _dio;
+  final Dio _dio = Dio();
 
-  GooglePlacesService()
-      : _dio = Dio(
-          BaseOptions(
-            baseUrl: 'https://nominatim.openstreetmap.org',
-            connectTimeout: const Duration(seconds: 5),
-            receiveTimeout: const Duration(seconds: 5),
-          ),
-        );
+  // La clave
+  final String _apiKey = 'AIzaSyBuNWmv5mS8gm1MITaowRj_1ddM-MBkR1Y';
 
   Future<List<PlaceSuggestion>> buscar(String input) async {
     if (input.trim().isEmpty) return [];
 
-    final response = await _dio.get(
-      '/search',
-      queryParameters: {
-        'q': input,
-        'format': 'json',
-        'limit': 5,
-        'accept-language': 'es',
-        'countrycodes': 'pe',
-        'addressdetails': 0,
-      },
-      options: Options(
-        headers: {'User-Agent': 'EventFlowApp/1.0'},
-      ),
-    );
-
-    if (response.statusCode != 200) return [];
-
-    final results = response.data as List?;
-    if (results == null) return [];
-
-    return results.map((r) {
-      final item = r as Map<String, dynamic>;
-      final lat = double.tryParse(item['lat'] as String? ?? '') ?? 0.0;
-      final lng = double.tryParse(item['lon'] as String? ?? '') ?? 0.0;
-      return PlaceSuggestion(
-        description: item['display_name'] as String? ?? 'Sin nombre',
-        location: LatLng(lat, lng),
+    try {
+      final response = await _dio.post(
+        'https://places.googleapis.com/v1/places:autocomplete',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _apiKey,
+          },
+        ),
+        data: {
+          "input": input,
+          "includedRegionCodes": ["PE"],
+          "languageCode": "es",
+        },
       );
-    }).toList();
+
+      final suggestions =
+          response.data['suggestions'] as List<dynamic>? ?? [];
+
+      List<PlaceSuggestion> resultado = [];
+
+      for (final item in suggestions) {
+        final placePrediction = item['placePrediction'];
+
+        if (placePrediction == null) continue;
+
+        final placeId = placePrediction['placeId'];
+        final text = placePrediction['text']['text'];
+
+        final detalle = await obtenerDetalleLugar(placeId);
+
+        if (detalle != null) {
+          resultado.add(
+            PlaceSuggestion(
+              description: text,
+              location: detalle,
+            ),
+          );
+        }
+      }
+
+      return resultado;
+
+    } catch (e) {
+      print("Error Places API: $e");
+      return [];
+    }
+  }
+
+
+  Future<LatLng?> obtenerDetalleLugar(String placeId) async {
+
+    try {
+
+      final response = await _dio.get(
+        'https://places.googleapis.com/v1/places/$placeId',
+        options: Options(
+          headers: {
+            'X-Goog-Api-Key': _apiKey,
+            'X-Goog-FieldMask': 'location',
+          },
+        ),
+      );
+
+
+      final location =
+          response.data['location'];
+
+      if(location == null) return null;
+
+
+      return LatLng(
+        location['latitude'],
+        location['longitude'],
+      );
+
+
+    } catch(e){
+      print("Error detalle lugar: $e");
+      return null;
+    }
+
   }
 }
